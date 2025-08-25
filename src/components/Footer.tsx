@@ -91,7 +91,7 @@ export const Footer = () => {
                 <Facebook className="w-5 h-5" />
               </a>
               <a
-                href="https://wa.me/8801234567890"
+                href="https://wa.me/8801756005575"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-all hover:scale-110"

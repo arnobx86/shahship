@@ -6,20 +6,20 @@ export const ContactInfo = () => {
     {
       icon: Phone,
       title: 'Call Center',
-      content: '+880 1234-567890',
+      content: '+880 1756-005575',
       subtitle: 'Available 24/7 for support'
     },
     {
       icon: MapPin,
-      title: 'Head Office',
-      content: 'Dhaka, Bangladesh',
-      subtitle: 'Gulshan Avenue, Dhaka-1212'
+      title: 'Dhaka Office',
+      content: '402/02, North Kazipara (Metro Station-এর পাশে)',
+      subtitle: 'Section #10, Mirpur, Dhaka'
     },
     {
       icon: Warehouse,
-      title: 'Warehouses',
-      content: 'China & Bangladesh',
-      subtitle: 'Secure storage facilities'
+      title: 'China Warehouse',
+      content: 'No. 23 Hengma Road, Qingyu Village',
+      subtitle: 'Xinya Street, Huadu District, Guangzhou'
     },
     {
       icon: Clock,

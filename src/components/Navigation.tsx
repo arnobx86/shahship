@@ -50,8 +50,8 @@ export const Navigation = () => {
 
           {/* Desktop Login Button */}
           <div className="hidden md:block">
-            <Button variant="outline" className="mr-3">
-              Login
+            <Button variant="outline" asChild className="mr-3">
+              <Link to="/login">Login</Link>
             </Button>
             <Button asChild variant="hero">
               <Link to="/booking">Create Booking</Link>
@@ -80,8 +80,8 @@ export const Navigation = () => {
                   </Link>
                 ))}
                 <div className="space-y-3 pt-6">
-                  <Button variant="outline" className="w-full">
-                    Login
+                  <Button variant="outline" asChild className="w-full">
+                    <Link to="/login" onClick={() => setIsOpen(false)}>Login</Link>
                   </Button>
                   <Button asChild className="w-full" variant="hero">
                     <Link to="/booking" onClick={() => setIsOpen(false)}>
