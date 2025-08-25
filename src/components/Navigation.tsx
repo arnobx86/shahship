@@ -1,0 +1,99 @@
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Menu, X } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+
+export const Navigation = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  const navLinks = [
+    { href: '/', label: 'Home' },
+    { href: '/pricing', label: 'Pricing' },
+    { href: '/about', label: 'About' },
+    { href: '/contact', label: 'Contact' },
+  ];
+
+  const isActive = (href: string) => location.pathname === href;
+
+  return (
+    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm border-b">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-hero rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">SS</span>
+            </div>
+            <div>
+              <span className="text-xl font-bold text-maritime-blue">Shah Ship</span>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={`font-medium transition-colors hover:text-primary ${
+                  isActive(link.href)
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-foreground'
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop Login Button */}
+          <div className="hidden md:block">
+            <Button variant="outline" className="mr-3">
+              Login
+            </Button>
+            <Button asChild variant="hero">
+              <Link to="/booking">Create Booking</Link>
+            </Button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <div className="flex flex-col space-y-4 mt-8">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`text-lg font-medium transition-colors hover:text-primary ${
+                      isActive(link.href) ? 'text-primary' : 'text-foreground'
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                <div className="space-y-3 pt-6">
+                  <Button variant="outline" className="w-full">
+                    Login
+                  </Button>
+                  <Button asChild className="w-full" variant="hero">
+                    <Link to="/booking" onClick={() => setIsOpen(false)}>
+                      Create Booking
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
+    </nav>
+  );
+};
