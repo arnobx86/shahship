@@ -8,15 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { AlertCircle, Phone } from 'lucide-react';
+import { AlertCircle, Phone, Mail } from 'lucide-react';
 
 const Login = () => {
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
-  const [phone, setPhone] = useState('');
+  const [step, setStep] = useState<'email' | 'otp'>('email');
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [fullPhoneNumber, setFullPhoneNumber] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -31,35 +30,33 @@ const Login = () => {
     checkUser();
   }, [navigate]);
 
-  // Validate Bangladesh phone number (10-11 digits after +880)
-  const validateBangladeshPhone = (phoneNumber: string): boolean => {
-    const cleanPhone = phoneNumber.replace(/\D/g, '');
-    return cleanPhone.length >= 10 && cleanPhone.length <= 11;
+  // Validate email format
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
-  const handlePhoneSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
-    if (!phone.trim()) {
-      setError('Please enter your phone number');
+    if (!email.trim()) {
+      setError('Please enter your email address');
       return;
     }
 
-    if (!validateBangladeshPhone(phone)) {
-      setError('Phone number must be 10-11 digits');
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address');
       return;
     }
     
     setLoading(true);
-    const fullPhone = `+880${phone}`;
-    setFullPhoneNumber(fullPhone);
     
     try {
       const { error } = await supabase.auth.signInWithOtp({
-        phone: fullPhone,
+        email: email,
         options: {
-          channel: 'sms',
+          emailRedirectTo: `${window.location.origin}/`,
         }
       });
 
@@ -70,7 +67,7 @@ const Login = () => {
       setStep('otp');
       toast({
         title: "OTP Sent",
-        description: `Verification code sent to ${fullPhone}`,
+        description: `Verification code sent to ${email}`,
       });
     } catch (error: any) {
       console.error('Error sending OTP:', error);
@@ -103,9 +100,9 @@ const Login = () => {
     
     try {
       const { error } = await supabase.auth.verifyOtp({
-        phone: fullPhoneNumber,
+        email: email,
         token: otp,
-        type: 'sms'
+        type: 'email'
       });
 
       if (error) {
@@ -140,11 +137,11 @@ const Login = () => {
           <Card className="p-8">
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-gradient-hero rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Phone className="w-8 h-8 text-white" />
+                <Mail className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-2xl font-bold text-maritime-blue">Welcome Back</h1>
               <p className="text-muted-foreground mt-2">
-                {step === 'phone' ? 'Enter your Bangladesh phone number to continue' : 'Enter verification code'}
+                {step === 'email' ? 'Enter your email address to continue' : 'Enter verification code'}
               </p>
               {error && (
                 <div className="flex items-center gap-2 mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
@@ -154,37 +151,26 @@ const Login = () => {
               )}
             </div>
 
-            {step === 'phone' ? (
-              <form onSubmit={handlePhoneSubmit} className="space-y-6">
+            {step === 'email' ? (
+              <form onSubmit={handleEmailSubmit} className="space-y-6">
                 <div>
-                  <Label htmlFor="phone">Bangladesh Phone Number</Label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-muted-foreground text-sm">+880</span>
-                    </div>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="1712345678"
-                      value={phone}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, '');
-                        if (value.length <= 11) {
-                          setPhone(value);
-                        }
-                      }}
-                      className="pl-16"
-                      required
-                    />
-                  </div>
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Enter 10-11 digits (without country code)
+                    We'll send you a verification code
                   </p>
                 </div>
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={loading || !phone.trim()}
+                  disabled={loading || !email.trim()}
                   variant="maritime"
                 >
                   {loading ? 'Sending...' : 'Send OTP'}
@@ -210,7 +196,7 @@ const Login = () => {
                     required
                   />
                   <p className="text-sm text-muted-foreground mt-2">
-                    Code sent to +880{phone}
+                    Code sent to {email}
                   </p>
                 </div>
                 <Button 
@@ -225,9 +211,9 @@ const Login = () => {
                   type="button"
                   variant="ghost"
                   className="w-full"
-                  onClick={() => setStep('phone')}
+                  onClick={() => setStep('email')}
                 >
-                  Change Phone Number
+                  Change Email Address
                 </Button>
               </form>
             )}
