@@ -57,7 +57,9 @@ const Login = () => {
         email: email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: undefined // This prevents magic link generation
+          data: {
+            // This ensures OTP is sent instead of magic link
+          }
         }
       });
 
