@@ -14,7 +14,111 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          booking_id: string
+          category: string
+          city: string
+          created_at: string
+          delivery_method: string
+          district: string
+          id: string
+          item_name: string
+          shipping_mark: string | null
+          shipping_method: string
+          special_notes: string | null
+          status: string
+          street: string
+          total_carton: number
+          total_charge: number
+          total_quantity: number
+          total_weight: number
+          tracking_numbers: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          category: string
+          city: string
+          created_at?: string
+          delivery_method: string
+          district: string
+          id?: string
+          item_name: string
+          shipping_mark?: string | null
+          shipping_method: string
+          special_notes?: string | null
+          status?: string
+          street: string
+          total_carton: number
+          total_charge: number
+          total_quantity: number
+          total_weight: number
+          tracking_numbers?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          category?: string
+          city?: string
+          created_at?: string
+          delivery_method?: string
+          district?: string
+          id?: string
+          item_name?: string
+          shipping_mark?: string | null
+          shipping_method?: string
+          special_notes?: string | null
+          status?: string
+          street?: string
+          total_carton?: number
+          total_charge?: number
+          total_quantity?: number
+          total_weight?: number
+          tracking_numbers?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
