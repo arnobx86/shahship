@@ -143,12 +143,14 @@ const Login = () => {
     setLoading(true);
     
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        phone: step === 'phone' ? phone : undefined,
-        email: step === 'email' ? email : undefined,
-        token: otp,
-        type: step === 'phone' ? 'sms' : 'email'
-      });
+      // Check if we came from phone or email login
+      const isPhoneVerification = phone && !email;
+      
+      const { error } = await supabase.auth.verifyOtp(
+        isPhoneVerification 
+          ? { phone, token: otp, type: 'sms' }
+          : { email, token: otp, type: 'email' }
+      );
 
       if (error) {
         throw error;
@@ -352,7 +354,7 @@ const Login = () => {
                     required
                   />
                   <p className="text-sm text-muted-foreground mt-2">
-                    Code sent to {step === 'phone' ? phone : email}
+                    Code sent to {phone && !email ? phone : email}
                   </p>
                 </div>
                 <Button 
