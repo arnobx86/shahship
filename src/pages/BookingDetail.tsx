@@ -242,50 +242,101 @@ export default function BookingDetail() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
+                  <FileText className="h-5 w-5 text-primary" />
                   General Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Booking ID</p>
-                  <p className="font-semibold text-lg">{booking.booking_id}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Booking Date</p>
-                  <p className="font-medium">
-                    {new Date(booking.created_at).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Current Status</p>
-                  <Badge className={`${getStatusColor(booking.status)} border-0 mt-1`}>
-                    {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Delivery Method</p>
-                  <p className="font-medium capitalize">{booking.delivery_method}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Delivery Address</p>
-                  <div className="flex items-start gap-2 mt-1">
-                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <div className="text-sm">
-                      <p>{booking.street}</p>
-                      <p>{booking.district}, {booking.city}</p>
+              <CardContent className="space-y-6">
+                {/* Booking ID - Highlighted */}
+                <div className="p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/20 rounded-lg">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Booking ID</p>
+                      <p className="font-bold text-2xl text-primary">{booking.booking_id}</p>
                     </div>
                   </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Grand Total</p>
-                  <p className="font-bold text-xl text-primary">৳{booking.total_charge}</p>
+
+                {/* Booking Date - Highlighted */}
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Calendar className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Booking Date</p>
+                      <p className="font-semibold text-blue-800 text-lg">
+                        {new Date(booking.created_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Current Status - Highlighted */}
+                <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-orange-100 rounded-lg">
+                      <Clock className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">Current Status</p>
+                      <Badge className={`${getStatusColor(booking.status)} border-0 text-lg px-3 py-1`}>
+                        {getStatusIcon(booking.status)}
+                        <span className="ml-2 capitalize">{booking.status}</span>
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Delivery Method - Highlighted */}
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Truck className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Delivery Method</p>
+                      <p className="font-semibold text-purple-800 text-lg capitalize">{booking.delivery_method}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Delivery Address - Highlighted */}
+                <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg border border-emerald-200">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-emerald-100 rounded-lg">
+                      <MapPin className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-2">Delivery Address</p>
+                      <div className="text-emerald-800">
+                        <p className="font-medium">{booking.street}</p>
+                        <p className="font-medium">{booking.district}, {booking.city}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Grand Total - Highlighted */}
+                <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <DollarSign className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Grand Total</p>
+                      <p className="font-bold text-3xl text-green-700">৳{booking.total_charge}</p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
