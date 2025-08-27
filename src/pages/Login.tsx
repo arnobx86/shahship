@@ -57,9 +57,7 @@ const Login = () => {
         email: email,
         options: {
           shouldCreateUser: true,
-          data: {
-            // This ensures OTP is sent instead of magic link
-          }
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
@@ -69,8 +67,8 @@ const Login = () => {
 
       setStep('otp');
       toast({
-        title: "OTP Sent",
-        description: `Verification code sent to ${email}`,
+        title: "Magic Link Sent",
+        description: `Check your email at ${email} and click the link to login`,
       });
     } catch (error: any) {
       console.error('Error sending OTP:', error);
@@ -144,7 +142,7 @@ const Login = () => {
               </div>
               <h1 className="text-2xl font-bold text-maritime-blue">Welcome Back</h1>
               <p className="text-muted-foreground mt-2">
-                {step === 'email' ? 'Enter your email address to continue' : 'Enter verification code'}
+                {step === 'email' ? 'Enter your email address to continue' : 'Check your email for the login link'}
               </p>
               {error && (
                 <div className="flex items-center gap-2 mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
@@ -167,7 +165,7 @@ const Login = () => {
                     required
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    We'll send you a verification code
+                    We'll send you a magic link to login
                   </p>
                 </div>
                 <Button 
@@ -176,49 +174,32 @@ const Login = () => {
                   disabled={loading || !email.trim()}
                   variant="maritime"
                 >
-                  {loading ? 'Sending...' : 'Send OTP'}
+                  {loading ? 'Sending...' : 'Send Magic Link'}
                 </Button>
               </form>
             ) : (
-              <form onSubmit={handleOtpSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="otp">Verification Code</Label>
-                  <Input
-                    id="otp"
-                    type="text"
-                    placeholder="Enter 6-digit code"
-                    value={otp}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, '');
-                      if (value.length <= 6) {
-                        setOtp(value);
-                      }
-                    }}
-                    maxLength={6}
-                    className="text-center text-lg tracking-wider"
-                    required
-                  />
+              <div className="space-y-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Mail className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Check Your Email</h3>
+                  <p className="text-muted-foreground">
+                    We've sent a magic link to <strong>{email}</strong>
+                  </p>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Code sent to {email}
+                    Click the link in the email to complete your login
                   </p>
                 </div>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={loading || otp.length !== 6}
-                  variant="maritime"
-                >
-                  {loading ? 'Verifying...' : 'Verify & Login'}
-                </Button>
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   className="w-full"
                   onClick={() => setStep('email')}
                 >
-                  Change Email Address
+                  Use Different Email
                 </Button>
-              </form>
+              </div>
             )}
           </Card>
         </div>
