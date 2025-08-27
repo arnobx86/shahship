@@ -14,6 +14,80 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string
+          description: string | null
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
+      booking_status_history: {
+        Row: {
+          booking_id: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_status: string
+          notes: string | null
+          old_status: string | null
+        }
+        Insert: {
+          booking_id: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status: string
+          notes?: string | null
+          old_status?: string | null
+        }
+        Update: {
+          booking_id?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status?: string
+          notes?: string | null
+          old_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_status_history_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           booking_id: string
@@ -83,6 +157,51 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing: {
+        Row: {
+          base_price: number | null
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          id: string
+          is_active: boolean | null
+          price_per_cbm: number | null
+          price_per_kg: number | null
+          shipping_method: string
+          shipping_route: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          base_price?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          id?: string
+          is_active?: boolean | null
+          price_per_cbm?: number | null
+          price_per_kg?: number | null
+          shipping_method: string
+          shipping_route: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          base_price?: number | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          id?: string
+          is_active?: boolean | null
+          price_per_cbm?: number | null
+          price_per_kg?: number | null
+          shipping_method?: string
+          shipping_route?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -91,6 +210,7 @@ export type Database = {
           id: string
           last_name: string | null
           phone: string | null
+          role: string | null
           updated_at: string
           user_id: string
           username: string | null
@@ -102,6 +222,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           phone?: string | null
+          role?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -113,6 +234,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           phone?: string | null
+          role?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
@@ -124,7 +246,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      log_admin_action: {
+        Args: {
+          p_action_type: string
+          p_description?: string
+          p_new_values?: Json
+          p_old_values?: Json
+          p_target_id: string
+          p_target_type: string
+        }
+        Returns: string
+      }
+      update_booking_status: {
+        Args: { p_booking_id: string; p_new_status: string; p_notes?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
