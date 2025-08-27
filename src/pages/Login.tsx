@@ -56,7 +56,8 @@ const Login = () => {
       const { error } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          shouldCreateUser: true,
+          emailRedirectTo: undefined // This prevents magic link generation
         }
       });
 
