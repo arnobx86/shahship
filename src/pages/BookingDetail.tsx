@@ -293,45 +293,96 @@ export default function BookingDetail() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Ship className="h-5 w-5" />
+                  <Ship className="h-5 w-5 text-primary" />
                   Shipment Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Shipping Method</p>
-                  <Badge variant="outline" className="mt-1 bg-sky-100 text-sky-800">
-                    {booking.shipping_method.includes('air') ? 'Air' : 'Sea'}
-                  </Badge>
+              <CardContent className="space-y-6">
+                {/* Shipping Method - Highlighted */}
+                <div className="p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/20 rounded-lg">
+                      <Truck className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Shipping Method</p>
+                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-lg px-3 py-1">
+                        {booking.shipping_method.includes('air') ? '✈️ Air Freight' : '🚢 Sea Freight'}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Shipping Route</p>
-                  <Badge variant="outline" className="mt-1 bg-indigo-100 text-indigo-800">
-                    {getShippingRoute(booking.city)}
-                  </Badge>
+
+                {/* Shipping Route - Highlighted */}
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Route className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Shipping Route</p>
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 text-lg px-3 py-1">
+                        📍 {getShippingRoute(booking.city)}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Shipping Charge</p>
-                  <p className="font-semibold">৳{(booking.total_charge * 0.8).toFixed(2)}</p>
+
+                {/* Shipping Charge - Highlighted */}
+                <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <DollarSign className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Shipping Charge</p>
+                      <p className="font-bold text-2xl text-green-700">৳{(booking.total_charge * 0.8).toFixed(2)}</p>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Shipping Mark - If available */}
                 {booking.shipping_mark && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Shipping Mark</p>
-                    <p className="font-medium">{booking.shipping_mark}</p>
+                  <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-amber-100 rounded-lg">
+                        <FileText className="h-5 w-5 text-amber-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground mb-1">Shipping Mark</p>
+                        <p className="font-semibold text-amber-800 text-lg">{booking.shipping_mark}</p>
+                      </div>
+                    </div>
                   </div>
                 )}
-                <div>
-                  <p className="text-sm text-muted-foreground">Tracking Numbers</p>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {booking.tracking_numbers && booking.tracking_numbers.length > 0 ? (
-                      booking.tracking_numbers.map((trackingNumber, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {trackingNumber}
-                        </Badge>
-                      ))
-                    ) : (
-                      <span className="text-sm text-muted-foreground italic">Not assigned yet</span>
-                    )}
+
+                {/* Tracking Numbers - Highlighted */}
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Package className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-2">Tracking Numbers</p>
+                      <div className="flex flex-wrap gap-2">
+                        {booking.tracking_numbers && booking.tracking_numbers.length > 0 ? (
+                          booking.tracking_numbers.map((trackingNumber, index) => (
+                            <Badge 
+                              key={index} 
+                              variant="outline" 
+                              className="bg-purple-100 text-purple-800 border-purple-300 text-sm px-3 py-1 font-mono"
+                            >
+                              {trackingNumber}
+                            </Badge>
+                          ))
+                        ) : (
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Clock className="h-4 w-4" />
+                            <span className="text-sm italic">Tracking numbers will be assigned once shipment is processed</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
