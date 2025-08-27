@@ -7,13 +7,18 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { 
   Package, 
   Search, 
   Filter,
-  Calendar,
-  Weight,
-  MapPin,
-  Truck
+  Eye
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
@@ -24,11 +29,13 @@ interface Booking {
   item_name: string;
   category: string;
   shipping_method: string;
+  delivery_method: string;
   total_weight: number;
   total_charge: number;
   status: string;
   district: string;
   city: string;
+  tracking_numbers: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -38,7 +45,8 @@ export default function DashboardBookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [bookingIdFilter, setBookingIdFilter] = useState('');
+  const [trackingFilter, setTrackingFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
   const fetchBookings = async () => {
@@ -95,13 +103,19 @@ export default function DashboardBookings() {
   useEffect(() => {
     let filtered = bookings;
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (booking) =>
-          booking.booking_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          booking.category.toLowerCase().includes(searchTerm.toLowerCase())
+    // Filter by booking ID
+    if (bookingIdFilter) {
+      filtered = filtered.filter((booking) =>
+        booking.booking_id.toLowerCase().includes(bookingIdFilter.toLowerCase())
+      );
+    }
+
+    // Filter by tracking number
+    if (trackingFilter) {
+      filtered = filtered.filter((booking) =>
+        booking.tracking_numbers?.some(tracking =>
+          tracking.toLowerCase().includes(trackingFilter.toLowerCase())
+        )
       );
     }
 
@@ -111,36 +125,35 @@ export default function DashboardBookings() {
     }
 
     setFilteredBookings(filtered);
-  }, [bookings, searchTerm, statusFilter]);
+  }, [bookings, bookingIdFilter, trackingFilter, statusFilter]);
 
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'placed':
-        return 'default';
-      case 'processing':
-        return 'secondary';
+  const getStatusBadgeClass = (status: string) => {
+    switch (status.toLowerCase()) {
       case 'completed':
-        return 'outline';
+        return 'bg-green-100 text-green-800 hover:bg-green-100/80';
+      case 'processing':
+      case 'processing for delivery':
+        return 'bg-orange-100 text-orange-800 hover:bg-orange-100/80';
+      case 'placed':
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-100/80';
+      case 'received in china airport':
+      case 'received in china warehouse':
+      case 'received in bd seaport':
+        return 'bg-slate-100 text-slate-800 hover:bg-slate-100/80';
+      case 'on the way to delivery':
+        return 'bg-purple-100 text-purple-800 hover:bg-purple-100/80';
       case 'cancelled':
-        return 'destructive';
+        return 'bg-red-100 text-red-800 hover:bg-red-100/80';
       default:
-        return 'default';
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-100/80';
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'placed':
-        return 'text-success';
-      case 'processing':
-        return 'text-warning';
-      case 'completed':
-        return 'text-success';
-      case 'cancelled':
-        return 'text-destructive';
-      default:
-        return 'text-muted-foreground';
-    }
+  const getMethodBadge = (method: string) => {
+    const isAir = method.toLowerCase().includes('air');
+    return isAir 
+      ? 'bg-sky-100 text-sky-800 hover:bg-sky-100/80'
+      : 'bg-blue-100 text-blue-800 hover:bg-blue-100/80';
   };
 
   if (loading) {
@@ -184,33 +197,41 @@ export default function DashboardBookings() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by booking ID, item name, or category..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Filter by status" />
+              <SelectTrigger>
+                <SelectValue placeholder="Booking Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="placed">Placed</SelectItem>
                 <SelectItem value="processing">Processing</SelectItem>
+                <SelectItem value="processing for delivery">Processing for Delivery</SelectItem>
+                <SelectItem value="received in china airport">Received in China Airport</SelectItem>
+                <SelectItem value="received in china warehouse">Received in China Warehouse</SelectItem>
+                <SelectItem value="on the way to delivery">On the Way to Delivery</SelectItem>
+                <SelectItem value="received in bd seaport">Received in BD Seaport</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
+            
+            <Input
+              placeholder="Booking ID"
+              value={bookingIdFilter}
+              onChange={(e) => setBookingIdFilter(e.target.value)}
+            />
+            
+            <Input
+              placeholder="Tracking Number"
+              value={trackingFilter}
+              onChange={(e) => setTrackingFilter(e.target.value)}
+            />
           </div>
         </CardContent>
       </Card>
 
-      {/* Bookings List */}
+      {/* Bookings Table */}
       {filteredBookings.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
@@ -224,55 +245,85 @@ export default function DashboardBookings() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
-          {filteredBookings.map((booking) => (
-            <Card key={booking.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  {/* Main Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold">{booking.booking_id}</h3>
-                      <Badge variant={getStatusVariant(booking.status)} className="capitalize">
-                        {booking.status}
-                      </Badge>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Package className="h-4 w-4" />
-                        <span>{booking.item_name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Truck className="h-4 w-4" />
-                        <span className="capitalize">{booking.shipping_method.replace('-', ' ')}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Weight className="h-4 w-4" />
-                        <span>{booking.total_weight} KG</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{booking.city}, {booking.district}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Stats & Actions */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                    <div className="text-right">
-                      <p className="font-semibold text-lg">৳{booking.total_charge}</p>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(booking.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Booking ID</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Method</TableHead>
+                    <TableHead>Route</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredBookings.map((booking) => (
+                    <TableRow key={booking.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">
+                        <Link 
+                          to={`/dashboard/bookings/${booking.id}`}
+                          className="text-primary hover:underline"
+                        >
+                          {booking.booking_id}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">
+                            {new Date(booking.created_at).toLocaleDateString()}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {new Date(booking.created_at).toLocaleTimeString([], { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant="outline" 
+                          className={getMethodBadge(booking.shipping_method)}
+                        >
+                          {booking.shipping_method.includes('air') ? 'Air' : 'Sea'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-indigo-100 text-indigo-800 hover:bg-indigo-100/80">
+                          {booking.city}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant="outline" 
+                          className={getStatusBadgeClass(booking.status)}
+                        >
+                          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          asChild
+                          className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                        >
+                          <Link to={`/dashboard/bookings/${booking.id}`}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
