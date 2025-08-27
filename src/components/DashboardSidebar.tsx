@@ -82,11 +82,17 @@ export function DashboardSidebar() {
   return (
     <Sidebar className={state === 'collapsed' ? 'w-14' : 'w-64'} collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border p-4">
+        {state !== 'collapsed' && (
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-primary">Shah Ship</h2>
+            <p className="text-xs text-muted-foreground">International Shipping</p>
+          </div>
+        )}
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarImage src={profile?.avatar_url || ''} alt={getDisplayName()} />
-            <AvatarFallback className="bg-gradient-hero text-white">
-              <User className="h-5 w-5" />
+            <AvatarFallback className="bg-gradient-hero text-white font-medium">
+              {getInitials()}
             </AvatarFallback>
           </Avatar>
           {state !== 'collapsed' && (

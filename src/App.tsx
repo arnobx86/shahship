@@ -15,6 +15,7 @@ import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import DashboardBookings from "./pages/DashboardBookings";
 import DashboardSettings from "./pages/DashboardSettings";
+import BookingDetail from "./pages/BookingDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,13 @@ const App = () => (
               <ProtectedRoute>
                 <DashboardLayout>
                   <DashboardBookings />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/bookings/:id" element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <BookingDetail />
                 </DashboardLayout>
               </ProtectedRoute>
             } />
