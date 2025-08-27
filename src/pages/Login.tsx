@@ -8,16 +8,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { AlertCircle, Phone, Mail } from 'lucide-react';
+import { AlertCircle, Mail, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
-  const [step, setStep] = useState<'email' | 'otp' | 'phone'>('email');
+  const [mode, setMode] = useState<'login' | 'signup' | 'verify' | 'set-password'>('login');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -38,7 +39,57 @@ const Login = () => {
     return emailRegex.test(email);
   };
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    
+    if (!email.trim()) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    if (!password.trim()) {
+      setError('Please enter your password');
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Login Successful",
+        description: "Welcome back to Shah Ship!",
+      });
+      
+      navigate('/');
+    } catch (error: any) {
+      console.error('Error logging in:', error);
+      setError(error.message || 'Failed to login. Please check your credentials.');
+      toast({
+        title: "Error",
+        description: error.message || 'Failed to login. Please check your credentials.',
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
@@ -67,17 +118,17 @@ const Login = () => {
         throw error;
       }
 
-      setStep('otp');
+      setMode('verify');
       toast({
-        title: "Magic Link Sent",
-        description: `Check your email at ${email} and click the link to login`,
+        title: "Verification Email Sent",
+        description: `Check your email at ${email} for the verification code`,
       });
     } catch (error: any) {
-      console.error('Error sending OTP:', error);
-      setError(error.message || 'Failed to send OTP. Please try again.');
+      console.error('Error sending verification:', error);
+      setError(error.message || 'Failed to send verification email. Please try again.');
       toast({
         title: "Error",
-        description: error.message || 'Failed to send OTP. Please try again.',
+        description: error.message || 'Failed to send verification email. Please try again.',
         variant: "destructive",
       });
     } finally {
@@ -85,48 +136,7 @@ const Login = () => {
     }
   };
 
-  const handlePhoneSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    
-    if (!phone.trim()) {
-      setError('Please enter your phone number');
-      return;
-    }
-    
-    setLoading(true);
-    
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: phone,
-        options: {
-          shouldCreateUser: true,
-        }
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      setStep('otp');
-      toast({
-        title: "OTP Sent",
-        description: `Verification code sent to ${phone}`,
-      });
-    } catch (error: any) {
-      console.error('Error sending phone OTP:', error);
-      setError(error.message || 'Failed to send OTP. Please try again.');
-      toast({
-        title: "Error",
-        description: error.message || 'Failed to send OTP. Please try again.',
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOtpSubmit = async (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
@@ -143,25 +153,21 @@ const Login = () => {
     setLoading(true);
     
     try {
-      // Check if we came from phone or email login
-      const isPhoneVerification = phone && !email;
-      
-      const { error } = await supabase.auth.verifyOtp(
-        isPhoneVerification 
-          ? { phone, token: otp, type: 'sms' }
-          : { email, token: otp, type: 'email' }
-      );
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'email'
+      });
 
       if (error) {
         throw error;
       }
 
+      setMode('set-password');
       toast({
-        title: "Login Successful",
-        description: "Welcome to Shah Ship!",
+        title: "Email Verified",
+        description: "Now set your password to complete registration",
       });
-      
-      navigate('/');
     } catch (error: any) {
       console.error('Error verifying OTP:', error);
       setError(error.message || 'Invalid verification code. Please try again.');
@@ -175,31 +181,70 @@ const Login = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
-    setGoogleLoading(true);
+    
+    if (!password.trim()) {
+      setError('Please enter a password');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    
+    setLoading(true);
     
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`
-        }
+      const { error } = await supabase.auth.updateUser({
+        password: password
       });
 
       if (error) {
         throw error;
       }
+
+      toast({
+        title: "Account Created Successfully",
+        description: "Welcome to Shah Ship!",
+      });
+      
+      navigate('/');
     } catch (error: any) {
-      console.error('Error with Google sign in:', error);
-      setError(error.message || 'Failed to sign in with Google. Please try again.');
+      console.error('Error setting password:', error);
+      setError(error.message || 'Failed to set password. Please try again.');
       toast({
         title: "Error",
-        description: error.message || 'Failed to sign in with Google. Please try again.',
+        description: error.message || 'Failed to set password. Please try again.',
         variant: "destructive",
       });
     } finally {
-      setGoogleLoading(false);
+      setLoading(false);
+    }
+  };
+
+  const getTitle = () => {
+    switch (mode) {
+      case 'login': return 'Welcome Back';
+      case 'signup': return 'Create Account';
+      case 'verify': return 'Verify Email';
+      case 'set-password': return 'Set Password';
+    }
+  };
+
+  const getDescription = () => {
+    switch (mode) {
+      case 'login': return 'Sign in to your account';
+      case 'signup': return 'Create a new account to get started';
+      case 'verify': return 'Enter the verification code sent to your email';
+      case 'set-password': return 'Set a secure password for your account';
     }
   };
 
@@ -211,14 +256,10 @@ const Login = () => {
           <Card className="p-8">
             <div className="text-center mb-8">
               <div className="w-16 h-16 bg-gradient-hero rounded-xl flex items-center justify-center mx-auto mb-4">
-                {step === 'phone' ? <Phone className="w-8 h-8 text-white" /> : <Mail className="w-8 h-8 text-white" />}
+                <Mail className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-maritime-blue">Welcome Back</h1>
-              <p className="text-muted-foreground mt-2">
-                {step === 'email' ? 'Choose your preferred login method' : 
-                 step === 'phone' ? 'Enter your phone number to continue' :
-                 'Enter verification code'}
-              </p>
+              <h1 className="text-2xl font-bold text-maritime-blue">{getTitle()}</h1>
+              <p className="text-muted-foreground mt-2">{getDescription()}</p>
               {error && (
                 <div className="flex items-center gap-2 mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
                   <AlertCircle className="w-4 h-4 text-destructive" />
@@ -227,90 +268,69 @@ const Login = () => {
               )}
             </div>
 
-            {step === 'email' ? (
-              <div className="space-y-6">
-                {/* Google Sign In */}
-                <Button 
-                  onClick={handleGoogleSignIn}
-                  disabled={googleLoading}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  {googleLoading ? 'Signing in...' : 'Continue with Google'}
-                </Button>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">Or</span>
-                  </div>
+            {mode === 'login' ? (
+              <form onSubmit={handleLogin} className="space-y-6">
+                <div>
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
                 </div>
-
-                {/* Email/Phone Toggle */}
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setStep('email')}
-                    className="w-full"
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Email
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setStep('phone')}
-                    className="w-full"
-                  >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Phone
-                  </Button>
-                </div>
-
-                <form onSubmit={handleEmailSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="email">Email Address</Label>
+                <div>
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder="your@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       required
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      We'll send you a magic link to login
-                    </p>
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={loading || !email.trim() || !password.trim()}
+                  variant="maritime"
+                >
+                  {loading ? 'Signing in...' : 'Sign In'}
+                </Button>
+                <div className="text-center">
+                  <span className="text-muted-foreground">Don't have an account? </span>
                   <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={loading || !email.trim()}
-                    variant="maritime"
+                    type="button" 
+                    variant="link" 
+                    className="p-0 h-auto"
+                    onClick={() => setMode('signup')}
                   >
-                    {loading ? 'Sending...' : 'Send Magic Link'}
+                    Sign up
                   </Button>
-                </form>
-              </div>
-            ) : step === 'phone' ? (
-              <form onSubmit={handlePhoneSubmit} className="space-y-6">
+                </div>
+              </form>
+            ) : mode === 'signup' ? (
+              <form onSubmit={handleSignup} className="space-y-6">
                 <div>
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="email">Email Address</Label>
                   <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+1 (555) 123-4567"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    id="email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                   <p className="text-xs text-muted-foreground mt-1">
@@ -320,22 +340,25 @@ const Login = () => {
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={loading || !phone.trim()}
+                  disabled={loading || !email.trim()}
                   variant="maritime"
                 >
-                  {loading ? 'Sending...' : 'Send OTP'}
+                  {loading ? 'Sending...' : 'Send Verification Code'}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => setStep('email')}
-                >
-                  Back to Email Login
-                </Button>
+                <div className="text-center">
+                  <span className="text-muted-foreground">Already have an account? </span>
+                  <Button 
+                    type="button" 
+                    variant="link" 
+                    className="p-0 h-auto"
+                    onClick={() => setMode('login')}
+                  >
+                    Sign in
+                  </Button>
+                </div>
               </form>
-            ) : (
-              <form onSubmit={handleOtpSubmit} className="space-y-6">
+            ) : mode === 'verify' ? (
+              <form onSubmit={handleVerifyOtp} className="space-y-6">
                 <div>
                   <Label htmlFor="otp">Verification Code</Label>
                   <Input
@@ -354,7 +377,7 @@ const Login = () => {
                     required
                   />
                   <p className="text-sm text-muted-foreground mt-2">
-                    Code sent to {phone && !email ? phone : email}
+                    Code sent to {email}
                   </p>
                 </div>
                 <Button 
@@ -363,15 +386,60 @@ const Login = () => {
                   disabled={loading || otp.length !== 6}
                   variant="maritime"
                 >
-                  {loading ? 'Verifying...' : 'Verify & Login'}
+                  {loading ? 'Verifying...' : 'Verify Code'}
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
                   className="w-full"
-                  onClick={() => setStep('email')}
+                  onClick={() => setMode('signup')}
                 >
-                  Change Login Method
+                  Back to Sign Up
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={handleSetPassword} className="space-y-6">
+                <div>
+                  <Label htmlFor="new-password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="new-password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Create a password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Must be at least 6 characters
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={loading || !password.trim() || !confirmPassword.trim()}
+                  variant="maritime"
+                >
+                  {loading ? 'Creating Account...' : 'Create Account'}
                 </Button>
               </form>
             )}
