@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Package, 
   Clock, 
@@ -18,7 +19,15 @@ import {
   Weight,
   DollarSign,
   FileText,
-  Ship
+  Ship,
+  User,
+  MessageSquare,
+  Camera,
+  History,
+  Box,
+  Route,
+  CreditCard,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -44,11 +53,36 @@ interface BookingDetail {
   updated_at: string;
 }
 
+interface StatusLog {
+  id: string;
+  status: string;
+  updated_by: string;
+  updated_at: string;
+  notes?: string;
+}
+
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [newNote, setNewNote] = useState('');
+  const [statusLogs] = useState<StatusLog[]>([
+    {
+      id: '1',
+      status: 'placed',
+      updated_by: 'System',
+      updated_at: new Date().toISOString(),
+      notes: 'Booking created successfully'
+    },
+    {
+      id: '2', 
+      status: 'processing',
+      updated_by: 'Admin',
+      updated_at: new Date(Date.now() - 86400000).toISOString(),
+      notes: 'Processing started at warehouse'
+    }
+  ]);
 
   useEffect(() => {
     const fetchBookingDetail = async () => {
@@ -81,18 +115,36 @@ export default function BookingDetail() {
   }, [user, id]);
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'placed':
-        return 'bg-success text-success-foreground';
-      case 'processing':
-        return 'bg-warning text-warning-foreground';
+    switch (status.toLowerCase()) {
       case 'completed':
-        return 'bg-success text-success-foreground';
+        return 'bg-green-100 text-green-800';
+      case 'processing':
+      case 'processing for delivery':
+        return 'bg-orange-100 text-orange-800';
+      case 'placed':
+        return 'bg-blue-100 text-blue-800';
+      case 'received in china airport':
+      case 'received in china warehouse':
+      case 'received in bd seaport':
+        return 'bg-slate-100 text-slate-800';
+      case 'on the way to delivery':
+        return 'bg-purple-100 text-purple-800';
       case 'cancelled':
-        return 'bg-destructive text-destructive-foreground';
+        return 'bg-red-100 text-red-800';
       default:
-        return 'bg-muted text-muted-foreground';
+        return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getShippingRoute = (city: string) => {
+    // Mock route logic - in real app this would come from backend
+    const routes: Record<string, string> = {
+      'Guangzhou': 'Guangzhou',
+      'Shanghai': 'Shanghai',
+      'Beijing': 'Beijing',
+      'Shenzhen': 'Shenzhen'
+    };
+    return routes[city] || 'Guangzhou';
   };
 
   const getStatusIcon = (status: string) => {
@@ -165,7 +217,7 @@ export default function BookingDetail() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/dashboard">
+            <Link to="/dashboard/bookings">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Link>
@@ -175,142 +227,33 @@ export default function BookingDetail() {
             <p className="text-muted-foreground">{booking.item_name}</p>
           </div>
         </div>
-        <Badge className={getStatusColor(booking.status)} variant="secondary">
+        <Badge className={`${getStatusColor(booking.status)} border-0`}>
           {getStatusIcon(booking.status)}
           <span className="ml-2 capitalize">{booking.status}</span>
         </Badge>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Details */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Booking Details
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Item Information */}
-            <div>
-              <h4 className="font-semibold mb-3">Item Information</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Left Column - Main Details */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* General Information & Shipment Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  General Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Item Name</p>
-                  <p className="font-medium">{booking.item_name}</p>
+                  <p className="text-sm text-muted-foreground">Booking ID</p>
+                  <p className="font-semibold text-lg">{booking.booking_id}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Category</p>
-                  <p className="font-medium capitalize">{booking.category}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Quantity</p>
-                  <p className="font-medium">{booking.total_quantity} pcs</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Cartons</p>
-                  <p className="font-medium">{booking.total_carton}</p>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Shipping Information */}
-            <div>
-              <h4 className="font-semibold mb-3">Shipping Information</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Shipping Method</p>
-                  <p className="font-medium capitalize">{booking.shipping_method}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Delivery Method</p>
-                  <p className="font-medium capitalize">{booking.delivery_method}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Weight</p>
-                  <p className="font-medium">{booking.total_weight} kg</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Charge</p>
-                  <p className="font-medium text-lg">৳{booking.total_charge}</p>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Delivery Address */}
-            <div>
-              <h4 className="font-semibold mb-3">Delivery Address</h4>
-              <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p>{booking.street}</p>
-                  <p>{booking.district}, {booking.city}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Information */}
-            {(booking.shipping_mark || booking.special_notes) && (
-              <>
-                <Separator />
-                <div>
-                  <h4 className="font-semibold mb-3">Additional Information</h4>
-                  {booking.shipping_mark && (
-                    <div className="mb-4">
-                      <p className="text-sm text-muted-foreground">Shipping Mark</p>
-                      <p className="font-medium">{booking.shipping_mark}</p>
-                    </div>
-                  )}
-                  {booking.special_notes && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Special Notes</p>
-                      <p className="font-medium">{booking.special_notes}</p>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* Tracking Numbers */}
-            {booking.tracking_numbers && booking.tracking_numbers.length > 0 && (
-              <>
-                <Separator />
-                <div>
-                  <h4 className="font-semibold mb-3">Tracking Numbers</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {booking.tracking_numbers.map((trackingNumber, index) => (
-                      <Badge key={index} variant="outline">
-                        {trackingNumber}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Status & Timeline */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Ship className="h-5 w-5" />
-                Status & Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-success/10">
-                  <Calendar className="h-5 w-5 text-success" />
-                </div>
-                <div>
-                  <p className="font-medium">Booking Placed</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">Booking Date</p>
+                  <p className="font-medium">
                     {new Date(booking.created_at).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
@@ -320,76 +263,267 @@ export default function BookingDetail() {
                     })}
                   </p>
                 </div>
-              </div>
-
-              {booking.status === 'processing' && (
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-warning/10">
-                    <Clock className="h-5 w-5 text-warning" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Processing</p>
-                    <p className="text-sm text-muted-foreground">
-                      Your booking is being processed
-                    </p>
+                <div>
+                  <p className="text-sm text-muted-foreground">Current Status</p>
+                  <Badge className={`${getStatusColor(booking.status)} border-0 mt-1`}>
+                    {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Delivery Method</p>
+                  <p className="font-medium capitalize">{booking.delivery_method}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Delivery Address</p>
+                  <div className="flex items-start gap-2 mt-1">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <p>{booking.street}</p>
+                      <p>{booking.district}, {booking.city}</p>
+                    </div>
                   </div>
                 </div>
-              )}
+                <div>
+                  <p className="text-sm text-muted-foreground">Grand Total</p>
+                  <p className="font-bold text-xl text-primary">৳{booking.total_charge}</p>
+                </div>
+              </CardContent>
+            </Card>
 
-              {booking.status === 'completed' && (
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-success/10">
-                    <CheckCircle className="h-5 w-5 text-success" />
-                  </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Ship className="h-5 w-5" />
+                  Shipment Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Shipping Method</p>
+                  <Badge variant="outline" className="mt-1 bg-sky-100 text-sky-800">
+                    {booking.shipping_method.includes('air') ? 'Air' : 'Sea'}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Shipping Route</p>
+                  <Badge variant="outline" className="mt-1 bg-indigo-100 text-indigo-800">
+                    {getShippingRoute(booking.city)}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Shipping Charge</p>
+                  <p className="font-semibold">৳{(booking.total_charge * 0.8).toFixed(2)}</p>
+                </div>
+                {booking.shipping_mark && (
                   <div>
-                    <p className="font-medium">Delivered</p>
-                    <p className="text-sm text-muted-foreground">
-                      Successfully delivered
-                    </p>
+                    <p className="text-sm text-muted-foreground">Shipping Mark</p>
+                    <p className="font-medium">{booking.shipping_mark}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm text-muted-foreground">Tracking Numbers</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {booking.tracking_numbers && booking.tracking_numbers.length > 0 ? (
+                      booking.tracking_numbers.map((trackingNumber, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {trackingNumber}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground italic">Not assigned yet</span>
+                    )}
                   </div>
                 </div>
-              )}
+              </CardContent>
+            </Card>
+          </div>
 
-              {booking.status === 'cancelled' && (
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-destructive/10">
-                    <XCircle className="h-5 w-5 text-destructive" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Cancelled</p>
-                    <p className="text-sm text-muted-foreground">
-                      Booking was cancelled
-                    </p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
+          {/* Item Information */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
+                <Box className="h-5 w-5" />
+                Item Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 text-sm font-medium text-muted-foreground">Details</th>
+                      <th className="text-right py-2 text-sm font-medium text-muted-foreground">Booked</th>
+                      <th className="text-right py-2 text-sm font-medium text-muted-foreground">Received</th>
+                    </tr>
+                  </thead>
+                  <tbody className="space-y-2">
+                    <tr className="border-b">
+                      <td className="py-3">
+                        <div>
+                          <p className="font-medium">{booking.item_name}</p>
+                          <p className="text-sm text-muted-foreground capitalize">{booking.category}</p>
+                        </div>
+                      </td>
+                      <td className="text-right py-3">-</td>
+                      <td className="text-right py-3">-</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-3">
+                        <p className="font-medium">Number of Cartons</p>
+                      </td>
+                      <td className="text-right py-3 font-medium">{booking.total_carton}</td>
+                      <td className="text-right py-3 font-medium text-green-600">{booking.total_carton}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-3">
+                        <p className="font-medium">Quantity (pcs)</p>
+                      </td>
+                      <td className="text-right py-3 font-medium">{booking.total_quantity}</td>
+                      <td className="text-right py-3 font-medium text-green-600">{booking.total_quantity}</td>
+                    </tr>
+                    <tr className="border-b">
+                      <td className="py-3">
+                        <p className="font-medium">Total Weight (KG)</p>
+                      </td>
+                      <td className="text-right py-3 font-medium">{booking.total_weight}</td>
+                      <td className="text-right py-3 font-medium text-green-600">{booking.total_weight}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3">
+                        <p className="font-medium">CBM (Cubic Meter)</p>
+                      </td>
+                      <td className="text-right py-3 font-medium">{(booking.total_weight * 0.001).toFixed(3)}</td>
+                      <td className="text-right py-3 font-medium text-green-600">{(booking.total_weight * 0.001).toFixed(3)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Supporting Panels */}
+        <div className="space-y-6">
+          
+          {/* Quality Control */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Camera className="h-5 w-5" />
+                Quality Control
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center py-8">
+              <div className="w-16 h-16 mx-auto bg-muted rounded-lg flex items-center justify-center mb-3">
+                <Camera className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground">No images uploaded yet</p>
+            </CardContent>
+          </Card>
+
+          {/* Booking Notes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Booking Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {booking.special_notes && (
+                <div className="p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Customer Note</span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(booking.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm">{booking.special_notes}</p>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Textarea 
+                  placeholder="Add a note..."
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  className="resize-none"
+                  rows={3}
+                />
+                <Button size="sm" className="w-full" disabled={!newNote.trim()}>
+                  Add Note
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Status Log */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Status Log
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {statusLogs.map((log, index) => (
+                <div key={log.id} className="flex items-start gap-3">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 flex-shrink-0">
+                    {getStatusIcon(log.status)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-sm capitalize">{log.status}</p>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(log.updated_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">by {log.updated_by}</p>
+                    {log.notes && (
+                      <p className="text-xs text-muted-foreground mt-1">{log.notes}</p>
+                    )}
+                  </div>
+                  {index < statusLogs.length - 1 && (
+                    <div className="absolute left-4 top-8 w-0.5 h-6 bg-border -ml-0.25"></div>
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Financial Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
                 Summary
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Weight:</span>
-                <span className="font-medium">{booking.total_weight} kg</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Quantity:</span>
-                <span className="font-medium">{booking.total_quantity} pcs</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Cartons:</span>
-                <span className="font-medium">{booking.total_carton}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between text-lg">
-                <span className="font-semibold">Total Charge:</span>
-                <span className="font-bold text-primary">৳{booking.total_charge}</span>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Grand Total</span>
+                  <span className="font-semibold">৳{booking.total_charge}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Amount Paid</span>
+                  <span className="font-semibold text-green-600">৳{(booking.total_charge * 0.7).toFixed(2)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Due Balance</span>
+                  <div className="text-right">
+                    <span className="font-bold text-lg text-orange-600">
+                      ৳{(booking.total_charge * 0.3).toFixed(2)}
+                    </span>
+                    {booking.total_charge * 0.3 > 0 && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <AlertCircle className="h-3 w-3 text-orange-600" />
+                        <span className="text-xs text-orange-600">Payment pending</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
