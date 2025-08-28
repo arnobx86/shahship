@@ -47,9 +47,9 @@ export const Calculator = () => {
                   <SelectValue placeholder="Select method" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="air">Air Freight</SelectItem>
-                  <SelectItem value="sea">Sea Freight</SelectItem>
-                  <SelectItem value="hand-carry">Hand Carry</SelectItem>
+                  <SelectItem value="air">Air (7-15 days)</SelectItem>
+                  <SelectItem value="sea">Sea (25-35 days, 100KG min)</SelectItem>
+                  <SelectItem value="hand-carry">Hand Carry (3-5 days)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -61,10 +61,8 @@ export const Calculator = () => {
                   <SelectValue placeholder="Select route" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="china-bangladesh">China → Bangladesh</SelectItem>
-                  <SelectItem value="usa-bangladesh">USA → Bangladesh</SelectItem>
-                  <SelectItem value="uk-bangladesh">UK → Bangladesh</SelectItem>
-                  <SelectItem value="germany-bangladesh">Germany → Bangladesh</SelectItem>
+                  <SelectItem value="guangzhou-bangladesh">Guangzhou → Bangladesh (7-10 days)</SelectItem>
+                  <SelectItem value="hongkong-bangladesh">China → Bangladesh via Hong Kong (10-15 days)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -76,10 +74,14 @@ export const Calculator = () => {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="electronics">Electronics</SelectItem>
-                  <SelectItem value="clothing">Clothing & Textiles</SelectItem>
-                  <SelectItem value="machinery">Machinery</SelectItem>
-                  <SelectItem value="general">General Cargo</SelectItem>
+                  <SelectItem value="general">General Products (Guangzhou route)</SelectItem>
+                  <SelectItem value="batteries">Batteries (Hong Kong route only)</SelectItem>
+                  <SelectItem value="liquids">Liquids (Hong Kong route only)</SelectItem>
+                  <SelectItem value="chemicals">Chemicals (Hong Kong route only)</SelectItem>
+                  <SelectItem value="cosmetics">Cosmetics (Hong Kong route only)</SelectItem>
+                  <SelectItem value="food">Food Items (Hong Kong route only)</SelectItem>
+                  <SelectItem value="powders">Powders (Hong Kong route only)</SelectItem>
+                  <SelectItem value="personal">Personal Use/Samples (Hand Carry only)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

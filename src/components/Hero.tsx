@@ -27,15 +27,15 @@ export const Hero = () => {
           {/* Left Content */}
           <div className="text-white">
             <Badge className="mb-6 bg-white/20 text-white border-white/30 hover:bg-white/30">
-              Fastest & Safest Shipping
+              Shah Ship & Shah Tech
             </Badge>
             <h1 className="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Ship Your Cargo
-              <span className="block text-accent">Worldwide</span>
+              Ship Your Cargo from
+              <span className="block text-accent">China to Bangladesh</span>
             </h1>
             <p className="text-xl mb-8 text-white/90 leading-relaxed">
-              Experience reliable, fast, and secure shipping services from China to Bangladesh 
-              with real-time tracking and competitive pricing.
+              Experience reliable shipping services from China to Bangladesh with Air, Sea, and Hand Carry options. 
+              Real-time tracking, RMB payment support, and competitive pricing.
             </p>
           </div>
 
@@ -57,13 +57,21 @@ export const Hero = () => {
                   <Ship className="w-4 h-4" />
                   Sea
                 </Button>
-                <Button
+                 <Button
                   variant={shippingMode === 'air' ? 'default' : 'outline'}
                   onClick={() => setShippingMode('air')}
                   className="flex-1 gap-2"
                 >
                   <Plane className="w-4 h-4" />
                   Air
+                </Button>
+                <Button
+                  variant={shippingMode === 'hand-carry' ? 'default' : 'outline'}
+                  onClick={() => setShippingMode('hand-carry')}
+                  className="flex-1 gap-2"
+                >
+                  <Ship className="w-4 h-4" />
+                  Hand Carry
                 </Button>
               </div>
 
@@ -76,9 +84,6 @@ export const Hero = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="china">🇨🇳 China</SelectItem>
-                      <SelectItem value="usa">🇺🇸 USA</SelectItem>
-                      <SelectItem value="uk">🇬🇧 UK</SelectItem>
-                      <SelectItem value="germany">🇩🇪 Germany</SelectItem>
                     </SelectContent>
                   </Select>
                   
@@ -92,9 +97,6 @@ export const Hero = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="bangladesh">🇧🇩 Bangladesh</SelectItem>
-                      <SelectItem value="india">🇮🇳 India</SelectItem>
-                      <SelectItem value="pakistan">🇵🇰 Pakistan</SelectItem>
-                      <SelectItem value="sri-lanka">🇱🇰 Sri Lanka</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -111,7 +113,7 @@ export const Hero = () => {
               </Button>
 
               <div className="text-center text-sm text-muted-foreground">
-                No hidden fees • Real-time tracking • 24/7 support
+                No hidden fees • Real-time tracking • RMB payment support • Trade License: TRAD/DNCC/006033/2023
               </div>
             </div>
           </Card>

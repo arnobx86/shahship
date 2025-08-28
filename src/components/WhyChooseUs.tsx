@@ -4,23 +4,23 @@ export const WhyChooseUs = () => {
   const reasons = [
     {
       icon: Truck,
-      title: 'Fast Delivery',
-      description: 'Quick and reliable delivery with express options available for urgent shipments.'
+      title: 'Multiple Shipping Options',
+      description: 'Air (7-15 days), Sea (25-35 days), and Hand Carry (3-5 days) services from China to Bangladesh.'
     },
     {
       icon: Shield,
-      title: 'Product Security',
-      description: 'Advanced security measures and insurance coverage to protect your valuable cargo.'
+      title: 'Secure & Licensed',
+      description: 'Licensed shipping service (TRAD/DNCC/006033/2023) with secure handling of all cargo types.'
     },
     {
       icon: DollarSign,
-      title: 'Best Pricing',
-      description: 'Competitive rates with transparent pricing and no hidden fees or charges.'
+      title: 'RMB Payment Support',
+      description: 'Simple, fast, and reliable RMB payment solutions for easy transactions.'
     },
     {
       icon: Headphones,
-      title: '24/7 Support',
-      description: 'Round-the-clock customer support to assist you with any shipping concerns.'
+      title: 'Real-time Tracking',
+      description: 'Track your shipments in real-time with dedicated customer support.'
     }
   ];
 
@@ -39,8 +39,7 @@ export const WhyChooseUs = () => {
             Why Choose Shah Ship?
           </h2>
           <p className="text-lg text-white/90 max-w-2xl mx-auto">
-            We are committed to providing the best shipping experience with 
-            unmatched service quality and customer satisfaction.
+            Trusted by businesses in Bangladesh for reliable shipping solutions from China with RMB payment support.
           </p>
         </div>
 
