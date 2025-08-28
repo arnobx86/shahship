@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Ship, Plane, ArrowLeftRight } from 'lucide-react';
+import { Ship, Plane, ArrowLeftRight, Package } from 'lucide-react';
 import heroImage from '@/assets/hero-shipping.jpg';
 
 export const Hero = () => {
@@ -70,7 +70,7 @@ export const Hero = () => {
                   onClick={() => setShippingMode('hand-carry')}
                   className="flex-1 gap-2"
                 >
-                  <Ship className="w-4 h-4" />
+                  <Package className="w-4 h-4" />
                   Hand Carry
                 </Button>
               </div>
@@ -113,7 +113,7 @@ export const Hero = () => {
               </Button>
 
               <div className="text-center text-sm text-muted-foreground">
-                No hidden fees • Real-time tracking • RMB payment support • Trade License: TRAD/DNCC/006033/2023
+                No hidden fees • Real-time tracking • RMB payment support
               </div>
             </div>
           </Card>

@@ -12,10 +12,31 @@ export const Calculator = () => {
   const [category, setCategory] = useState('');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
+  const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
+
+  const calculatePrice = () => {
+    const weightNum = parseFloat(weight);
+    if (!weightNum || !method) return;
+
+    let price = 0;
+    
+    if (method === 'air') {
+      if (weightNum >= 5) price = weightNum * 720;
+      else if (weightNum >= 4) price = weightNum * 730;
+      else if (weightNum >= 3) price = weightNum * 740;
+      else if (weightNum >= 2) price = weightNum * 750;
+      else price = 760; // 1 KG flat rate
+    } else if (method === 'sea') {
+      price = weightNum * 200;
+    } else if (method === 'hand-carry') {
+      price = weightNum * 1000;
+    }
+    
+    setCalculatedPrice(price);
+  };
 
   const handleCalculate = () => {
-    // This would require login in a real app
-    alert('Please login to calculate shipping charges');
+    calculatePrice();
   };
 
   return (
@@ -23,7 +44,7 @@ export const Calculator = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-foreground mb-4">
-            Shipping Charge & CBM Calculator
+            Shipping Charge Calculator
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Calculate your shipping costs instantly with our advanced calculator. 
@@ -112,20 +133,25 @@ export const Calculator = () => {
               <Button 
                 onClick={handleCalculate}
                 className="w-full gap-2"
-                disabled={!method || !route || !category || !weight}
+                disabled={!method || !weight}
               >
-                <Lock className="w-4 h-4" />
-                Calculate (Login Required)
+                <CalculatorIcon className="w-4 h-4" />
+                Calculate Shipping Cost
               </Button>
             </div>
           </div>
 
-          <div className="mt-8 p-4 bg-muted/50 rounded-lg">
-            <p className="text-sm text-muted-foreground text-center">
-              <strong>Note:</strong> Login is required to access the shipping calculator. 
-              Create an account to get instant quotes and manage your shipments.
-            </p>
-          </div>
+          {calculatedPrice && (
+            <div className="mt-8 p-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-foreground mb-2">Calculated Shipping Cost</h3>
+                <p className="text-3xl font-bold text-primary mb-2">৳{calculatedPrice}</p>
+                <p className="text-sm text-muted-foreground">
+                  For {weight} KG via {method === 'air' ? 'Air' : method === 'sea' ? 'Sea' : 'Hand Carry'} shipping
+                </p>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </div>

@@ -41,18 +41,18 @@ export const Footer = () => {
               <div className="space-y-6">
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 hover:bg-white/20 transition-all">
                   <div className="w-16 h-16 bg-gradient-hero rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white font-bold text-lg">SB</span>
+                    <span className="text-white font-bold text-lg">SS</span>
                   </div>
-                  <h4 className="text-xl font-semibold mb-2">SkyBuy</h4>
-                  <p className="text-white/80">International purchasing & sourcing platform</p>
+                  <h4 className="text-xl font-semibold mb-2">Shah Ship</h4>
+                  <p className="text-white/80">International shipping & logistics services</p>
                 </div>
                 
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 hover:bg-white/20 transition-all">
                   <div className="w-16 h-16 bg-gradient-hero rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white font-bold text-lg">SS</span>
+                    <span className="text-white font-bold text-lg">ST</span>
                   </div>
-                  <h4 className="text-xl font-semibold mb-2">SkyShip</h4>
-                  <p className="text-white/80">Premium shipping & logistics services</p>
+                  <h4 className="text-xl font-semibold mb-2">Shah Tech</h4>
+                  <p className="text-white/80">Technology solutions & services</p>
                 </div>
               </div>
             </div>
@@ -102,8 +102,11 @@ export const Footer = () => {
           </div>
           
           <div className="text-center mt-4 pt-4 border-t border-white/10">
-            <p className="text-white/60 text-sm">
+            <p className="text-white/60 text-sm mb-2">
               © 2024 Shah Ship. All rights reserved. | Built with care for safe shipping.
+            </p>
+            <p className="text-white/50 text-xs">
+              Trade License No.: TRAD/DNCC/006033/2023
             </p>
           </div>
         </div>

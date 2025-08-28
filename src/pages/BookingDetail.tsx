@@ -233,12 +233,12 @@ export default function BookingDetail() {
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left Column - Main Details */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-6">
           
           {/* General Information & Shipment Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -450,55 +450,106 @@ export default function BookingDetail() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 text-sm font-medium text-muted-foreground">Details</th>
-                      <th className="text-right py-2 text-sm font-medium text-muted-foreground">Booked</th>
-                      <th className="text-right py-2 text-sm font-medium text-muted-foreground">Received</th>
-                    </tr>
-                  </thead>
-                  <tbody className="space-y-2">
-                    <tr className="border-b">
-                      <td className="py-3">
-                        <div>
-                          <p className="font-medium">{booking.item_name}</p>
-                          <p className="text-sm text-muted-foreground capitalize">{booking.category}</p>
+                <div className="min-w-full">
+                  {/* Mobile Card View */}
+                  <div className="block sm:hidden space-y-4">
+                    <Card className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Details:</span>
+                          <span className="font-medium">{booking.item_name}</span>
                         </div>
-                      </td>
-                      <td className="text-right py-3">-</td>
-                      <td className="text-right py-3">-</td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="py-3">
-                        <p className="font-medium">Number of Cartons</p>
-                      </td>
-                      <td className="text-right py-3 font-medium">{booking.total_carton}</td>
-                      <td className="text-right py-3 font-medium text-green-600">{booking.total_carton}</td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="py-3">
-                        <p className="font-medium">Quantity (pcs)</p>
-                      </td>
-                      <td className="text-right py-3 font-medium">{booking.total_quantity}</td>
-                      <td className="text-right py-3 font-medium text-green-600">{booking.total_quantity}</td>
-                    </tr>
-                    <tr className="border-b">
-                      <td className="py-3">
-                        <p className="font-medium">Total Weight (KG)</p>
-                      </td>
-                      <td className="text-right py-3 font-medium">{booking.total_weight}</td>
-                      <td className="text-right py-3 font-medium text-green-600">{booking.total_weight}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-3">
-                        <p className="font-medium">CBM (Cubic Meter)</p>
-                      </td>
-                      <td className="text-right py-3 font-medium">{(booking.total_weight * 0.001).toFixed(3)}</td>
-                      <td className="text-right py-3 font-medium text-green-600">{(booking.total_weight * 0.001).toFixed(3)}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Category:</span>
+                          <span className="capitalize">{booking.category}</span>
+                        </div>
+                      </div>
+                    </Card>
+                    <Card className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Cartons:</span>
+                          <div className="text-right">
+                            <span className="font-medium">{booking.total_carton}</span>
+                            <span className="text-green-600 ml-2">✓ {booking.total_carton}</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Quantity:</span>
+                          <div className="text-right">
+                            <span className="font-medium">{booking.total_quantity}</span>
+                            <span className="text-green-600 ml-2">✓ {booking.total_quantity}</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Weight (KG):</span>
+                          <div className="text-right">
+                            <span className="font-medium">{booking.total_weight}</span>
+                            <span className="text-green-600 ml-2">✓ {booking.total_weight}</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">CBM:</span>
+                          <div className="text-right">
+                            <span className="font-medium">{(booking.total_weight * 0.001).toFixed(3)}</span>
+                            <span className="text-green-600 ml-2">✓ {(booking.total_weight * 0.001).toFixed(3)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                  
+                  {/* Desktop Table View */}
+                  <table className="w-full hidden sm:table">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-2 text-sm font-medium text-muted-foreground">Details</th>
+                        <th className="text-right py-2 text-sm font-medium text-muted-foreground">Booked</th>
+                        <th className="text-right py-2 text-sm font-medium text-muted-foreground">Received</th>
+                      </tr>
+                    </thead>
+                    <tbody className="space-y-2">
+                      <tr className="border-b">
+                        <td className="py-3">
+                          <div>
+                            <p className="font-medium">{booking.item_name}</p>
+                            <p className="text-sm text-muted-foreground capitalize">{booking.category}</p>
+                          </div>
+                        </td>
+                        <td className="text-right py-3">-</td>
+                        <td className="text-right py-3">-</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="py-3">
+                          <p className="font-medium">Number of Cartons</p>
+                        </td>
+                        <td className="text-right py-3 font-medium">{booking.total_carton}</td>
+                        <td className="text-right py-3 font-medium text-green-600">{booking.total_carton}</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="py-3">
+                          <p className="font-medium">Quantity (pcs)</p>
+                        </td>
+                        <td className="text-right py-3 font-medium">{booking.total_quantity}</td>
+                        <td className="text-right py-3 font-medium text-green-600">{booking.total_quantity}</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="py-3">
+                          <p className="font-medium">Total Weight (KG)</p>
+                        </td>
+                        <td className="text-right py-3 font-medium">{booking.total_weight}</td>
+                        <td className="text-right py-3 font-medium text-green-600">{booking.total_weight}</td>
+                      </tr>
+                      <tr>
+                        <td className="py-3">
+                          <p className="font-medium">CBM (Cubic Meter)</p>
+                        </td>
+                        <td className="text-right py-3 font-medium">{(booking.total_weight * 0.001).toFixed(3)}</td>
+                        <td className="text-right py-3 font-medium text-green-600">{(booking.total_weight * 0.001).toFixed(3)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </CardContent>
           </Card>
