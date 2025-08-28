@@ -157,6 +157,48 @@ export type Database = {
         }
         Relationships: []
       }
+      dynamic_pricing: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          currency: string
+          id: string
+          is_active: boolean
+          price_per_kg: number
+          shipping_method: string
+          updated_at: string
+          updated_by: string | null
+          weight_from: number
+          weight_to: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          is_active?: boolean
+          price_per_kg: number
+          shipping_method: string
+          updated_at?: string
+          updated_by?: string | null
+          weight_from: number
+          weight_to?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          is_active?: boolean
+          price_per_kg?: number
+          shipping_method?: string
+          updated_at?: string
+          updated_by?: string | null
+          weight_from?: number
+          weight_to?: number | null
+        }
+        Relationships: []
+      }
       pricing: {
         Row: {
           base_price: number | null
@@ -246,6 +288,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_shipping_price: {
+        Args: { p_shipping_method: string; p_weight: number }
+        Returns: number
+      }
       log_admin_action: {
         Args: {
           p_action_type: string

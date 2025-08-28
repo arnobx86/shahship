@@ -1,56 +1,96 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, Users, DollarSign, TrendingUp, Activity, AlertCircle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
+import { Package, Users, DollarSign, Activity, CheckCircle, Clock, TrendingUp, Calendar } from 'lucide-react';
+import { AdminPricingManager } from '@/components/AdminPricingManager';
+import { AdminOrdersManager } from '@/components/AdminOrdersManager';
 
 interface DashboardStats {
   totalBookings: number;
   pendingBookings: number;
+  completedBookings: number;
   totalCustomers: number;
   totalRevenue: number;
   recentActivityCount: number;
+  statusBreakdown: Record<string, number>;
+  weeklyOrders: number;
+  monthlyOrders: number;
 }
 
-export default function AdminDashboard() {
+const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
     totalBookings: 0,
     pendingBookings: 0,
+    completedBookings: 0,
     totalCustomers: 0,
     totalRevenue: 0,
     recentActivityCount: 0,
+    statusBreakdown: {},
+    weeklyOrders: 0,
+    monthlyOrders: 0,
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        // Fetch bookings stats
-        const { data: bookings } = await supabase
+        // Fetch all bookings with status breakdown
+        const { data: allBookings } = await supabase
           .from('bookings')
-          .select('status, total_charge');
+          .select('*');
 
-        const totalBookings = bookings?.length || 0;
-        const pendingBookings = bookings?.filter(b => b.status === 'placed' || b.status === 'processing').length || 0;
-        const totalRevenue = bookings?.reduce((sum, b) => sum + (parseFloat(String(b.total_charge)) || 0), 0) || 0;
+        const totalBookings = allBookings?.length || 0;
+        const completedBookings = allBookings?.filter(b => b.status === 'completed').length || 0;
+        const pendingBookings = totalBookings - completedBookings;
 
-        // Fetch customers count
-        const { count: totalCustomers } = await supabase
+        // Status breakdown
+        const statusBreakdown = allBookings?.reduce((acc, booking) => {
+          acc[booking.status] = (acc[booking.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>) || {};
+
+        // Weekly orders (last 7 days)
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        const weeklyOrders = allBookings?.filter(b => 
+          new Date(b.created_at) >= oneWeekAgo
+        ).length || 0;
+
+        // Monthly orders (last 30 days)
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
+        const monthlyOrders = allBookings?.filter(b => 
+          new Date(b.created_at) >= oneMonthAgo
+        ).length || 0;
+
+        // Fetch total customers
+        const { data: totalCustomers } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true })
           .eq('role', 'customer');
 
-        // Fetch recent activity count
-        const { count: recentActivityCount } = await supabase
+        // Calculate total revenue
+        const totalRevenue = allBookings?.reduce((sum, booking) => 
+          sum + (parseFloat(booking.total_charge?.toString() || '0')), 0) || 0;
+
+        // Fetch recent activity count (admin actions in last 7 days)
+        const { data: recentActivity } = await supabase
           .from('admin_actions')
           .select('*', { count: 'exact', head: true })
-          .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+          .gte('created_at', oneWeekAgo.toISOString());
 
         setStats({
           totalBookings,
           pendingBookings,
-          totalCustomers: totalCustomers || 0,
+          completedBookings,
+          totalCustomers: totalCustomers?.length || 0,
           totalRevenue,
-          recentActivityCount: recentActivityCount || 0,
+          recentActivityCount: recentActivity?.length || 0,
+          statusBreakdown,
+          weeklyOrders,
+          monthlyOrders,
         });
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
@@ -64,159 +104,189 @@ export default function AdminDashboard() {
 
   const statCards = [
     {
-      title: 'Total Bookings',
+      title: 'Total Orders',
       value: stats.totalBookings,
       description: 'All time bookings',
-      icon: Package,
-      color: 'from-blue-500 to-cyan-500',
+      Icon: Package,
+      color: 'text-blue-600',
+    },
+    {
+      title: 'Completed Orders',
+      value: stats.completedBookings,
+      description: 'Successfully delivered',
+      Icon: CheckCircle,
+      color: 'text-green-600',
     },
     {
       title: 'Pending Orders',
       value: stats.pendingBookings,
-      description: 'Requiring attention',
-      icon: AlertCircle,
-      color: 'from-orange-500 to-red-500',
-    },
-    {
-      title: 'Total Customers',
-      value: stats.totalCustomers,
-      description: 'Registered users',
-      icon: Users,
-      color: 'from-green-500 to-emerald-500',
+      description: 'Orders in progress',
+      Icon: Clock,
+      color: 'text-yellow-600',
     },
     {
       title: 'Total Revenue',
-      value: `$${stats.totalRevenue.toLocaleString()}`,
+      value: `৳${stats.totalRevenue.toLocaleString()}`,
       description: 'All time earnings',
-      icon: DollarSign,
-      color: 'from-purple-500 to-pink-500',
+      Icon: DollarSign,
+      color: 'text-purple-600',
     },
     {
-      title: 'Recent Activity',
-      value: stats.recentActivityCount,
-      description: 'Last 7 days',
-      icon: Activity,
-      color: 'from-indigo-500 to-blue-500',
+      title: 'Weekly Orders',
+      value: stats.weeklyOrders,
+      description: 'Orders in last 7 days',
+      Icon: TrendingUp,
+      color: 'text-indigo-600',
+    },
+    {
+      title: 'Monthly Orders',
+      value: stats.monthlyOrders,
+      description: 'Orders in last 30 days',
+      Icon: Calendar,
+      color: 'text-rose-600',
     },
   ];
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(5)].map((_, i) => (
-            <Card key={i} className="bg-white/5 border-white/10 animate-pulse">
-              <CardHeader className="pb-2">
-                <div className="h-4 bg-white/10 rounded w-3/4"></div>
-                <div className="h-8 bg-white/10 rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-3 bg-white/10 rounded w-full"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const statusLabels = {
+    'placed': 'Order Placed',
+    'received_china_warehouse': 'Received in China Warehouse',
+    'processing_delivery': 'Processing for Delivery',
+    'on_way_delivery': 'On the way to Delivery',
+    'on_way_bd_airport': 'On the way to BD Airport',
+    'received_bd_seaport': 'Received in BD Seaport',
+    'completed': 'Completed'
+  };
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h1>
-        <p className="text-white/70">
-          Welcome to the Shah Ship admin dashboard. Here's what's happening with your platform.
+        <h1 className="text-3xl font-bold text-white mb-2">
+          Shah Ship Admin Dashboard
+        </h1>
+        <p className="text-gray-300">
+          Complete control over shipping operations and business insights
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {statCards.map((card, index) => (
-          <Card key={index} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/90">{card.title}</CardTitle>
-              <div className={`p-2 rounded-lg bg-gradient-to-r ${card.color}`}>
-                <card.icon className="h-4 w-4 text-white" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white mb-1">{card.value}</div>
-              <p className="text-xs text-white/60">{card.description}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="bg-black/20 border-white/10">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-primary">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="data-[state=active]:bg-primary">
+            Orders Management
+          </TabsTrigger>
+          <TabsTrigger value="pricing" className="data-[state=active]:bg-primary">
+            Shipping Charges
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-white">Quick Actions</CardTitle>
-            <CardDescription className="text-white/70">
-              Common administrative tasks
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <button className="w-full p-3 text-left rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/10">
-              <div className="flex items-center gap-3">
-                <Package className="h-5 w-5 text-blue-400" />
-                <div>
-                  <p className="text-white font-medium">Review Pending Orders</p>
-                  <p className="text-white/60 text-sm">{stats.pendingBookings} orders need attention</p>
-                </div>
-              </div>
-            </button>
-            <button className="w-full p-3 text-left rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/10">
-              <div className="flex items-center gap-3">
-                <DollarSign className="h-5 w-5 text-green-400" />
-                <div>
-                  <p className="text-white font-medium">Update Pricing</p>
-                  <p className="text-white/60 text-sm">Manage shipping rates</p>
-                </div>
-              </div>
-            </button>
-            <button className="w-full p-3 text-left rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/10">
-              <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-purple-400" />
-                <div>
-                  <p className="text-white font-medium">View Customers</p>
-                  <p className="text-white/60 text-sm">Manage user accounts</p>
-                </div>
-              </div>
-            </button>
-          </CardContent>
-        </Card>
+        <TabsContent value="overview" className="space-y-6">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {loading ? (
+              Array.from({ length: 6 }).map((_, index) => (
+                <Card key={index} className="bg-black/20 border-white/10">
+                  <CardContent className="p-6">
+                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="h-8 w-16 mb-2" />
+                    <Skeleton className="h-3 w-32" />
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              statCards.map((card, index) => (
+                <Card key={index} className="bg-black/20 border-white/10 hover:bg-black/30 transition-colors">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-300">{card.title}</p>
+                        <p className="text-2xl font-bold text-white">{card.value}</p>
+                        <p className="text-xs text-gray-400">{card.description}</p>
+                      </div>
+                      <card.Icon className={`h-8 w-8 ${card.color}`} />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
 
-        <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-white">System Status</CardTitle>
-            <CardDescription className="text-white/70">
-              Platform health and metrics
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-white/90">Database</span>
-              </div>
-              <span className="text-green-400 text-sm">Online</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-white/90">Authentication</span>
-              </div>
-              <span className="text-green-400 text-sm">Active</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-white/90">API Services</span>
-              </div>
-              <span className="text-green-400 text-sm">Running</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          {/* Status Breakdown */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="bg-black/20 border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white">Order Status Breakdown</CardTitle>
+                <CardDescription className="text-gray-300">
+                  Current distribution of order statuses
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {Object.entries(stats.statusBreakdown).map(([status, count]) => (
+                  <div key={status} className="flex items-center justify-between">
+                    <span className="text-sm text-gray-300">
+                      {statusLabels[status as keyof typeof statusLabels] || status}
+                    </span>
+                    <span className="text-sm font-medium text-white">{count}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-black/20 border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white">Business Insights</CardTitle>
+                <CardDescription className="text-gray-300">
+                  Performance trends and metrics
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-300">Weekly Growth</span>
+                  <span className="text-sm text-green-400">
+                    {stats.weeklyOrders > 0 ? `+${stats.weeklyOrders}` : '0'} orders
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-300">Monthly Growth</span>
+                  <span className="text-sm text-green-400">
+                    {stats.monthlyOrders > 0 ? `+${stats.monthlyOrders}` : '0'} orders
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-300">Completion Rate</span>
+                  <span className="text-sm text-white">
+                    {stats.totalBookings > 0 
+                      ? `${Math.round((stats.completedBookings / stats.totalBookings) * 100)}%`
+                      : '0%'
+                    }
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-300">Avg Revenue/Order</span>
+                  <span className="text-sm text-white">
+                    ৳{stats.totalBookings > 0 
+                      ? Math.round(stats.totalRevenue / stats.totalBookings).toLocaleString()
+                      : '0'
+                    }
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="orders">
+          <AdminOrdersManager />
+        </TabsContent>
+
+        <TabsContent value="pricing">
+          <AdminPricingManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
-}
+};
+
+export default AdminDashboard;

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calculator as CalculatorIcon, Lock } from 'lucide-react';
+import { Calculator as CalculatorIcon } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export const Calculator = () => {
   const [method, setMethod] = useState('');
@@ -14,25 +15,44 @@ export const Calculator = () => {
   const [height, setHeight] = useState('');
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
 
-  const calculatePrice = () => {
+  const calculatePrice = async () => {
     const weightNum = parseFloat(weight);
     if (!weightNum || !method) return;
 
-    let price = 0;
-    
-    if (method === 'air') {
-      if (weightNum >= 5) price = weightNum * 720;
-      else if (weightNum >= 4) price = weightNum * 730;
-      else if (weightNum >= 3) price = weightNum * 740;
-      else if (weightNum >= 2) price = weightNum * 750;
-      else price = 760; // 1 KG flat rate
-    } else if (method === 'sea') {
-      price = weightNum * 200;
-    } else if (method === 'hand-carry') {
-      price = weightNum * 1000;
+    try {
+      const methodMap = {
+        'air': 'Air',
+        'sea': 'Sea', 
+        'hand-carry': 'Hand Carry'
+      };
+      
+      const { data, error } = await supabase.rpc('get_shipping_price', {
+        p_shipping_method: methodMap[method as keyof typeof methodMap],
+        p_weight: weightNum
+      });
+
+      if (error) throw error;
+      
+      const pricePerKg = data || 0;
+      const totalPrice = Math.ceil(weightNum) * pricePerKg;
+      setCalculatedPrice(totalPrice);
+    } catch (error) {
+      console.error('Error calculating price:', error);
+      // Fallback pricing
+      let price = 0;
+      if (method === 'air') {
+        if (weightNum >= 5) price = weightNum * 720;
+        else if (weightNum >= 4) price = weightNum * 730;
+        else if (weightNum >= 3) price = weightNum * 740;
+        else if (weightNum >= 2) price = weightNum * 750;
+        else price = 760;
+      } else if (method === 'sea') {
+        price = weightNum * 200;
+      } else if (method === 'hand-carry') {
+        price = weightNum * 1000;
+      }
+      setCalculatedPrice(price);
     }
-    
-    setCalculatedPrice(price);
   };
 
   const handleCalculate = () => {
