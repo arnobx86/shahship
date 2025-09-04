@@ -32,6 +32,7 @@ const AdminDashboard: React.FC = () => {
     monthlyOrders: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
@@ -75,11 +76,15 @@ const AdminDashboard: React.FC = () => {
         const totalRevenue = allBookings?.reduce((sum, booking) => 
           sum + (parseFloat(booking.total_charge?.toString() || '0')), 0) || 0;
 
-        // Fetch recent activity count (admin actions in last 7 days)
-        const { data: recentActivity } = await supabase
+        // Fetch recent activity (admin actions in last 7 days)
+        const { data: recentActivityData } = await supabase
           .from('admin_actions')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', oneWeekAgo.toISOString());
+          .select('*')
+          .gte('created_at', oneWeekAgo.toISOString())
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        setRecentActivity(recentActivityData || []);
 
         setStats({
           totalBookings,
@@ -87,7 +92,7 @@ const AdminDashboard: React.FC = () => {
           completedBookings,
           totalCustomers: totalCustomers?.length || 0,
           totalRevenue,
-          recentActivityCount: recentActivity?.length || 0,
+          recentActivityCount: recentActivityData?.length || 0,
           statusBreakdown,
           weeklyOrders,
           monthlyOrders,
@@ -145,6 +150,20 @@ const AdminDashboard: React.FC = () => {
       Icon: Calendar,
       color: 'text-rose-600',
     },
+    {
+      title: 'Total Customers',
+      value: stats.totalCustomers,
+      description: 'Registered users',
+      Icon: Users,
+      color: 'text-cyan-600',
+    },
+    {
+      title: 'Recent Activity',
+      value: stats.recentActivityCount,
+      description: 'Admin actions (7 days)',
+      Icon: Activity,
+      color: 'text-amber-600',
+    },
   ];
 
   const statusLabels = {
@@ -184,7 +203,7 @@ const AdminDashboard: React.FC = () => {
 
         <TabsContent value="overview" className="space-y-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {loading ? (
               Array.from({ length: 6 }).map((_, index) => (
                 <Card key={index} className="bg-black/20 border-white/10">
@@ -213,8 +232,9 @@ const AdminDashboard: React.FC = () => {
             )}
           </div>
 
-          {/* Status Breakdown */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Admin Dashboard Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Order Status Breakdown */}
             <Card className="bg-black/20 border-white/10">
               <CardHeader>
                 <CardTitle className="text-white">Order Status Breakdown</CardTitle>
@@ -234,6 +254,7 @@ const AdminDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
+            {/* Business Insights */}
             <Card className="bg-black/20 border-white/10">
               <CardHeader>
                 <CardTitle className="text-white">Business Insights</CardTitle>
@@ -272,6 +293,37 @@ const AdminDashboard: React.FC = () => {
                     }
                   </span>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Admin Activity */}
+            <Card className="bg-black/20 border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white">Recent Admin Activity</CardTitle>
+                <CardDescription className="text-gray-300">
+                  Latest administrative actions
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {recentActivity.length === 0 ? (
+                  <div className="text-center py-4">
+                    <Activity className="h-8 w-8 text-gray-500 mx-auto mb-2" />
+                    <p className="text-sm text-gray-400">No recent activity</p>
+                  </div>
+                ) : (
+                  recentActivity.slice(0, 5).map((activity, index) => (
+                    <div key={index} className="flex items-start gap-3 p-2 bg-black/10 rounded">
+                      <Activity className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-white">{activity.action_type}</p>
+                        <p className="text-xs text-gray-400 truncate">{activity.description}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(activity.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
           </div>
