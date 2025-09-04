@@ -89,7 +89,7 @@ export function AdminSidebar() {
   return (
     <Sidebar
       variant="sidebar"
-      className={`border-r border-white/10 bg-black/20 backdrop-blur-sm ${
+      className={`border-r border-white/10 bg-slate-900/95 backdrop-blur-sm ${
         state === 'collapsed' ? 'w-16' : 'w-64'
       }`}
     >

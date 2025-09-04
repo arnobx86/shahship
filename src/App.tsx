@@ -20,6 +20,10 @@ import DashboardSettings from "./pages/DashboardSettings";
 import BookingDetail from "./pages/BookingDetail";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminPricing from "./pages/AdminPricing";
+import AdminOrders from "./pages/AdminOrders";
+import AdminCustomers from "./pages/AdminCustomers";
+import AdminLogs from "./pages/AdminLogs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -77,6 +81,46 @@ const App = () => (
                 <AdminRoute>
                   <AdminLayout>
                     <AdminDashboard />
+                  </AdminLayout>
+                </AdminRoute>
+              )}
+            />
+            <Route
+              path="/admin/pricing"
+              element={(
+                <AdminRoute>
+                  <AdminLayout>
+                    <AdminPricing />
+                  </AdminLayout>
+                </AdminRoute>
+              )}
+            />
+            <Route
+              path="/admin/orders"
+              element={(
+                <AdminRoute>
+                  <AdminLayout>
+                    <AdminOrders />
+                  </AdminLayout>
+                </AdminRoute>
+              )}
+            />
+            <Route
+              path="/admin/customers"
+              element={(
+                <AdminRoute>
+                  <AdminLayout>
+                    <AdminCustomers />
+                  </AdminLayout>
+                </AdminRoute>
+              )}
+            />
+            <Route
+              path="/admin/logs"
+              element={(
+                <AdminRoute>
+                  <AdminLayout>
+                    <AdminLogs />
                   </AdminLayout>
                 </AdminRoute>
               )}
