@@ -5,7 +5,7 @@ import { HowItWorks } from '@/components/HowItWorks';
 import { Features } from '@/components/Features';
 import { WhyChooseUs } from '@/components/WhyChooseUs';
 import { Calculator } from '@/components/Calculator';
-import { RMBPayment } from '@/components/RMBPayment';
+
 import { Footer } from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
@@ -38,7 +38,6 @@ const Index = () => {
       <HowItWorks />
       <Features />
       <WhyChooseUs />
-      <RMBPayment />
       <Calculator />
       <Footer />
     </div>

@@ -39,7 +39,7 @@ export const HowItWorks = () => {
               How It Works
             </Badge>
             <h2 className="text-4xl font-bold text-foreground mb-6">
-              How SkyShip Works
+              How Shah Ship Works
             </h2>
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
               Our streamlined process makes international shipping simple and transparent. 
