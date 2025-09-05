@@ -27,7 +27,7 @@ interface Booking {
   status: string;
   created_at: string;
   updated_at: string;
-  profiles?: {
+  profile?: {
     first_name: string | null;
     last_name: string | null;
     username: string | null;
@@ -84,27 +84,48 @@ export const AdminOrdersManager: React.FC = () => {
   }, []);
 
   const fetchBookings = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch bookings with user profile information
+      const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
-        .select(`
-          *,
-          profiles(first_name, last_name, username)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setBookings((data as any) || []);
+      if (bookingsError) {
+        console.error('Error fetching bookings:', bookingsError);
+        throw bookingsError;
+      }
+
+      // Fetch user profiles separately
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, username');
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
+
+      // Combine bookings with profile data
+      const bookingsWithProfiles = (bookingsData || []).map(booking => {
+        const profile = profilesData?.find(p => p.user_id === booking.user_id);
+        return {
+          ...booking,
+          profile: profile || null
+        };
+      });
+
+      setBookings(bookingsWithProfiles);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch orders',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to fetch orders. Please check your admin permissions.",
+        variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   const fetchStatusHistory = async (bookingId: string) => {
@@ -228,7 +249,7 @@ export const AdminOrdersManager: React.FC = () => {
   };
 
   const getCustomerName = (booking: Booking) => {
-    const profile = booking.profiles;
+    const profile = booking.profile;
     if (profile?.first_name || profile?.last_name) {
       return `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
     }

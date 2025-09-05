@@ -81,27 +81,27 @@ export function AdminSidebar() {
 
   const getNavLinkClass = (path: string) => {
     const isActive = location.pathname === path;
-    return `w-full justify-start text-white/70 hover:text-white hover:bg-white/10 transition-colors ${
-      isActive ? 'bg-white/10 text-white' : ''
+    return `w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors ${
+      isActive ? 'bg-sidebar-accent text-sidebar-foreground font-medium' : ''
     }`;
   };
 
   return (
     <Sidebar
       variant="sidebar"
-      className={`border-r border-white/10 bg-slate-900/95 backdrop-blur-sm ${
+      className={`border-r border-sidebar-border bg-sidebar backdrop-blur-sm ${
         state === 'collapsed' ? 'w-16' : 'w-64'
       }`}
     >
-      <SidebarHeader className="border-b border-white/10 p-4">
+      <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-red-500">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-hero">
             <Shield className="h-6 w-6 text-white" />
           </div>
           {state !== 'collapsed' && (
             <div>
-              <h2 className="text-lg font-semibold text-white">Admin Panel</h2>
-              <p className="text-xs text-white/60">Shah Ship</p>
+              <h2 className="text-lg font-semibold text-sidebar-foreground">Admin Panel</h2>
+              <p className="text-xs text-sidebar-foreground/60">Shah Ship</p>
             </div>
           )}
         </div>
@@ -109,19 +109,19 @@ export function AdminSidebar() {
 
       <SidebarContent className="p-4">
         {state !== 'collapsed' && (
-          <div className="mb-6 p-3 rounded-lg bg-white/5 border border-white/10">
+          <div className="mb-6 p-3 rounded-lg bg-sidebar-accent border border-sidebar-border">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={profile?.avatar_url || ''} />
-                <AvatarFallback className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
+                <AvatarFallback className="bg-gradient-hero text-white">
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
+                <p className="text-sm font-medium text-sidebar-foreground truncate">
                   {getDisplayName()}
                 </p>
-                <p className="text-xs text-white/60 truncate">
+                <p className="text-xs text-sidebar-foreground/60 truncate">
                   {profile?.role === 'super_admin' ? 'Super Admin' : 'Admin'}
                 </p>
               </div>
@@ -144,12 +144,12 @@ export function AdminSidebar() {
         </SidebarMenu>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-white/10 p-4">
+      <SidebarFooter className="border-t border-sidebar-border p-4">
         <Button
           variant="ghost"
           onClick={handleSignOut}
           disabled={isSigningOut}
-          className="w-full justify-start text-white/70 hover:text-white hover:bg-red-500/10 hover:border-red-500/20"
+          className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-destructive/10 hover:border-destructive/20"
         >
           <LogOut className="h-5 w-5" />
           {state !== 'collapsed' && (
