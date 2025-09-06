@@ -292,6 +292,10 @@ export type Database = {
         Args: { p_shipping_method: string; p_weight: number }
         Returns: number
       }
+      is_admin: {
+        Args: { user_id?: string }
+        Returns: boolean
+      }
       log_admin_action: {
         Args: {
           p_action_type: string
