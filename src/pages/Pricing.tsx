@@ -50,6 +50,7 @@ const Pricing = () => {
           </div>
         </div>
       </div>
+      <Calculator />
       <Footer />
     </div>
   );
