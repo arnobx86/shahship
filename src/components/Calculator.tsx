@@ -4,7 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calculator as CalculatorIcon, LogIn } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Calculator as CalculatorIcon, LogIn, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -18,43 +19,7 @@ export const Calculator = () => {
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
-
-  // Check if user is logged in, redirect to login if not
-  if (!user) {
-    return (
-      <div className="py-16 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              Shipping Charge Calculator
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Please log in to access our shipping cost calculator
-            </p>
-          </div>
-
-          <Card className="max-w-md mx-auto p-8 shadow-card text-center">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-hero rounded-xl flex items-center justify-center">
-                <LogIn className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <h3 className="text-xl font-semibold text-foreground mb-4">Login Required</h3>
-            <p className="text-muted-foreground mb-6">
-              You need to be logged in to use the shipping charge calculator.
-            </p>
-            <Button 
-              onClick={() => navigate('/login')}
-              className="w-full gap-2"
-            >
-              <LogIn className="w-4 h-4" />
-              Login Now
-            </Button>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const calculatePrice = async () => {
     const weightNum = parseFloat(weight);
@@ -97,6 +62,10 @@ export const Calculator = () => {
   };
 
   const handleCalculate = () => {
+    if (!user) {
+      setShowLoginDialog(true);
+      return;
+    }
     calculatePrice();
   };
 
@@ -214,6 +183,37 @@ export const Calculator = () => {
             </div>
           )}
         </Card>
+
+        <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <LogIn className="w-5 h-5" />
+                Login Required
+              </DialogTitle>
+              <DialogDescription>
+                You need to be logged in to calculate shipping costs and view pricing.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-3">
+              <Button 
+                onClick={() => navigate('/login')}
+                className="w-full gap-2"
+              >
+                <LogIn className="w-4 h-4" />
+                Login to Your Account
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/login')}
+                className="w-full gap-2"
+              >
+                <UserPlus className="w-4 h-4" />
+                Create New Account
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
