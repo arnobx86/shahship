@@ -15,12 +15,7 @@ const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Redirect logged-in users to dashboard
-    if (!loading && user) {
-      navigate('/dashboard');
-    }
-  }, [user, loading, navigate]);
+  // Removed auto-redirect to allow logged-in users to access home page
 
   if (loading) {
     return (

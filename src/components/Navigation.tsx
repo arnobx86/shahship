@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { user } = useAuth();
 
   const navLinks = [
     { href: '/', label: 'Home' },
@@ -48,11 +50,17 @@ export const Navigation = () => {
             ))}
           </div>
 
-          {/* Desktop Login Button */}
+          {/* Desktop Auth Button */}
           <div className="hidden md:block">
-            <Button variant="outline" asChild className="mr-3">
-              <Link to="/login">Login</Link>
-            </Button>
+            {user ? (
+              <Button variant="outline" asChild className="mr-3">
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+            ) : (
+              <Button variant="outline" asChild className="mr-3">
+                <Link to="/login">Login</Link>
+              </Button>
+            )}
             <Button asChild variant="hero">
               <Link to="/booking">Create Booking</Link>
             </Button>
@@ -80,9 +88,15 @@ export const Navigation = () => {
                   </Link>
                 ))}
                 <div className="space-y-3 pt-6">
-                  <Button variant="outline" asChild className="w-full">
-                    <Link to="/login" onClick={() => setIsOpen(false)}>Login</Link>
-                  </Button>
+                  {user ? (
+                    <Button variant="outline" asChild className="w-full">
+                      <Link to="/dashboard" onClick={() => setIsOpen(false)}>Dashboard</Link>
+                    </Button>
+                  ) : (
+                    <Button variant="outline" asChild className="w-full">
+                      <Link to="/login" onClick={() => setIsOpen(false)}>Login</Link>
+                    </Button>
+                  )}
                   <Button asChild className="w-full" variant="hero">
                     <Link to="/booking" onClick={() => setIsOpen(false)}>
                       Create Booking
