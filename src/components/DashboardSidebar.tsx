@@ -85,7 +85,7 @@ export function DashboardSidebar() {
         {state !== 'collapsed' && (
           <div className="mb-4">
             <h2 className="text-lg font-bold text-primary">Shah Ship</h2>
-            <p className="text-xs text-muted-foreground">International Shipping</p>
+            <p className="text-xs text-muted-foreground">China to Bangladesh Shipping</p>
           </div>
         )}
         <div className="flex items-center gap-3">

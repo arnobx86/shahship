@@ -23,7 +23,7 @@ export const Footer = () => {
                 Fastest & Safest Shipment With Us
               </h2>
               <p className="text-white/80 text-lg leading-relaxed max-w-lg">
-                Your trusted partner for international shipping. We ensure your cargo 
+                Your trusted partner for shipping from China to Bangladesh. We ensure your cargo 
                 reaches its destination safely and on time, every time.
               </p>
               
@@ -44,7 +44,7 @@ export const Footer = () => {
                     <span className="text-white font-bold text-lg">SS</span>
                   </div>
                   <h4 className="text-xl font-semibold mb-2">Shah Ship</h4>
-                  <p className="text-white/80">International shipping & logistics services</p>
+                  <p className="text-white/80">China to Bangladesh shipping & logistics services</p>
                 </div>
                 
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 hover:bg-white/20 transition-all">

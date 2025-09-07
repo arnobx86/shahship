@@ -57,13 +57,13 @@ const About = () => {
             <div className="prose prose-lg max-w-none text-muted-foreground">
               <p className="text-lg leading-relaxed mb-6">
                 Founded with a vision to bridge the gap between China and Bangladesh, Shah Ship has emerged as a leading 
-                logistics company specializing in international shipping and cargo services. Since our inception, we have 
+                logistics company specializing in shipping and cargo services from China to Bangladesh. Since our inception, we have 
                 been committed to providing fast, secure, and cost-effective shipping solutions for businesses and individuals.
               </p>
               <p className="text-lg leading-relaxed mb-6">
                 With strategically located warehouses in China and Bangladesh, we offer comprehensive end-to-end logistics 
                 services including air freight, sea freight, express delivery, and customs clearance. Our experienced team 
-                understands the complexities of international trade and works tirelessly to ensure your cargo reaches its 
+                understands the complexities of China-Bangladesh trade and works tirelessly to ensure your cargo reaches its 
                 destination safely and on time.
               </p>
               <p className="text-lg leading-relaxed">
@@ -114,8 +114,8 @@ const About = () => {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-8">Our Mission</h2>
           <p className="text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
-            To revolutionize international shipping by providing innovative, reliable, and cost-effective logistics 
-            solutions that connect businesses and individuals across borders, fostering global trade and commerce 
+            To revolutionize shipping from China to Bangladesh by providing innovative, reliable, and cost-effective logistics 
+            solutions that connect businesses and individuals, fostering trade and commerce 
             between China and Bangladesh.
           </p>
         </div>

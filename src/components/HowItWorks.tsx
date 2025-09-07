@@ -42,7 +42,7 @@ export const HowItWorks = () => {
               How Shah Ship Works
             </h2>
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-              Our streamlined process makes international shipping simple and transparent. 
+              Our streamlined process makes shipping from China to Bangladesh simple and transparent. 
               Follow these easy steps to get your cargo delivered safely.
             </p>
 
