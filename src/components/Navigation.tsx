@@ -26,7 +26,7 @@ export const Navigation = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <img 
-              src="/lovable-uploads/7dbd7d03-2120-4838-960a-0c8a6a40948a.png" 
+              src="/lovable-uploads/eec3b9ab-48ad-4940-b14c-50b7e6efcb82.png" 
               alt="Shah Ship Logo" 
               className="h-12 w-auto"
             />
