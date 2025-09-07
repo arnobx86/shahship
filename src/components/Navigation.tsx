@@ -24,13 +24,12 @@ export const Navigation = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-hero rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">SS</span>
-            </div>
-            <div>
-              <span className="text-xl font-bold text-maritime-blue">Shah Ship</span>
-            </div>
+          <Link to="/" className="flex items-center">
+            <img 
+              src="/lovable-uploads/6ea9516d-bce0-42c1-89ad-2c6d23e233b1.png" 
+              alt="Shah Ship Logo" 
+              className="h-12 w-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}
