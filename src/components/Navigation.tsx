@@ -28,7 +28,7 @@ export const Navigation = () => {
             <img 
               src="/lovable-uploads/eec3b9ab-48ad-4940-b14c-50b7e6efcb82.png" 
               alt="Shah Ship Logo" 
-              className="h-12 w-auto"
+              className="h-auto w-[270px]"
             />
           </Link>
 
