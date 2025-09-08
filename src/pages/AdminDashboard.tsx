@@ -90,7 +90,7 @@ const AdminDashboard: React.FC = () => {
           totalBookings,
           pendingBookings,
           completedBookings,
-          totalCustomers: totalCustomers?.length || 0,
+          totalCustomers: totalCustomers || 0,
           totalRevenue,
           recentActivityCount: recentActivityData?.length || 0,
           statusBreakdown,

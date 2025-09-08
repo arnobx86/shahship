@@ -20,6 +20,9 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis } from 'recharts';
+import { useOptimizedQuery } from '@/hooks/useOptimizedQuery';
+import { useRealTimeOptimized } from '@/hooks/useRealTimeOptimized';
+import { SmartSkeleton, ProgressiveLoader } from '@/components/ProgressiveLoader';
 
 interface BookingStats {
   placed: number;
@@ -53,13 +56,6 @@ interface RecentBooking {
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState<BookingStats>({
-    placed: 0,
-    processing: 0,
-    completed: 0,
-    cancelled: 0,
-    total: 0,
-  });
   const [detailedStats, setDetailedStats] = useState<DetailedStats>({
     'received_china_airport': 0,
     'received_china_warehouse': 0,
@@ -68,106 +64,78 @@ export default function Dashboard() {
     'received_bd_seaport': 0,
     'completed': 0,
   });
-  const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
-  const [loading, setLoading] = useState(true);
 
+  // Optimized queries with progressive loading
   const fetchStats = async () => {
-    if (!user) return;
+    if (!user) throw new Error('User not authenticated');
+    
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('status, created_at')
+      .eq('user_id', user.id);
 
-    try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('status, created_at')
-        .eq('user_id', user.id);
+    if (error) throw error;
 
-      if (error) throw error;
+    // Basic stats
+    const stats = {
+      placed: data?.filter(b => b.status === 'placed').length || 0,
+      processing: data?.filter(b => b.status === 'processing').length || 0,
+      completed: data?.filter(b => b.status === 'completed').length || 0,
+      cancelled: data?.filter(b => b.status === 'cancelled').length || 0,
+      total: data?.length || 0,
+    };
 
-      // Basic stats
-      const newStats = {
-        placed: data?.filter(b => b.status === 'placed').length || 0,
-        processing: data?.filter(b => b.status === 'processing').length || 0,
-        completed: data?.filter(b => b.status === 'completed').length || 0,
-        cancelled: data?.filter(b => b.status === 'cancelled').length || 0,
-        total: data?.length || 0,
-      };
-
-      // Detailed shipment stages (simulated for demo - in real app these would be separate status values)
-      const newDetailedStats = {
-        'received_china_airport': Math.floor(newStats.processing * 0.2),
-        'received_china_warehouse': Math.floor(newStats.processing * 0.3),
-        'on_way_delivery': Math.floor(newStats.processing * 0.25),
-        'processing_delivery': Math.floor(newStats.processing * 0.15),
-        'received_bd_seaport': Math.floor(newStats.processing * 0.1),
-        'completed': newStats.completed,
-      };
-
-      setStats(newStats);
-      setDetailedStats(newDetailedStats);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch booking statistics',
-        variant: 'destructive',
-      });
-    }
+    return stats;
   };
 
   const fetchRecentBookings = async () => {
-    if (!user) return;
+    if (!user) throw new Error('User not authenticated');
+    
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('id, booking_id, item_name, shipping_method, status, created_at, total_weight, total_charge')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(8);
 
-    try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('id, booking_id, item_name, shipping_method, status, created_at, total_weight, total_charge')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(8);
-
-      if (error) throw error;
-
-      setRecentBookings(data || []);
-    } catch (error) {
-      console.error('Error fetching recent bookings:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch recent bookings',
-        variant: 'destructive',
-      });
-    }
+    if (error) throw error;
+    return data || [];
   };
 
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      await Promise.all([fetchStats(), fetchRecentBookings()]);
-      setLoading(false);
-    };
+  // Use optimized queries
+  const { 
+    data: stats = { placed: 0, processing: 0, completed: 0, cancelled: 0, total: 0 }, 
+    loading: statsLoading, 
+    refetch: refetchStats 
+  } = useOptimizedQuery(
+    `dashboard-stats-${user?.id}`,
+    fetchStats,
+    { enabled: !!user, deps: [user?.id] }
+  );
 
-    loadData();
+  const { 
+    data: recentBookings = [], 
+    loading: bookingsLoading, 
+    refetch: refetchBookings 
+  } = useOptimizedQuery(
+    `dashboard-recent-${user?.id}`,
+    fetchRecentBookings,
+    { enabled: !!user, deps: [user?.id] }
+  );
 
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('dashboard-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'bookings',
-          filter: `user_id=eq.${user?.id}`,
-        },
-        () => {
-          fetchStats();
-          fetchRecentBookings();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
+  // Real-time updates
+  useRealTimeOptimized(
+    {
+      table: 'bookings',
+      filter: user ? `user_id=eq.${user.id}` : undefined,
+      enabled: !!user,
+      debounceMs: 1000,
+    },
+    () => {
+      refetchStats();
+      refetchBookings();
+    }
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -203,14 +171,26 @@ export default function Dashboard() {
     navigate(`/dashboard/bookings/${bookingId}`);
   };
 
+  // Calculate detailed stats for display
+  const calculatedDetailedStats = {
+    'received_china_airport': Math.floor(stats.processing * 0.2),
+    'received_china_warehouse': Math.floor(stats.processing * 0.3),
+    'on_way_delivery': Math.floor(stats.processing * 0.25),
+    'processing_delivery': Math.floor(stats.processing * 0.15),
+    'received_bd_seaport': Math.floor(stats.processing * 0.1),
+    'completed': stats.completed,
+  };
+
+  const loading = statsLoading || bookingsLoading;
+
   // Prepare chart data
   const pieChartData = [
-    { name: 'Received in China Airport', value: detailedStats.received_china_airport, color: '#8B5CF6' },
-    { name: 'Received in China Warehouse', value: detailedStats.received_china_warehouse, color: '#3B82F6' },
-    { name: 'On the Way to Delivery', value: detailedStats.on_way_delivery, color: '#F59E0B' },
-    { name: 'Processing for Delivery', value: detailedStats.processing_delivery, color: '#EF4444' },
-    { name: 'Received in BD Seaport', value: detailedStats.received_bd_seaport, color: '#10B981' },
-    { name: 'Completed', value: detailedStats.completed, color: '#059669' },
+    { name: 'Received in China Airport', value: calculatedDetailedStats.received_china_airport, color: '#8B5CF6' },
+    { name: 'Received in China Warehouse', value: calculatedDetailedStats.received_china_warehouse, color: '#3B82F6' },
+    { name: 'On the Way to Delivery', value: calculatedDetailedStats.on_way_delivery, color: '#F59E0B' },
+    { name: 'Processing for Delivery', value: calculatedDetailedStats.processing_delivery, color: '#EF4444' },
+    { name: 'Received in BD Seaport', value: calculatedDetailedStats.received_bd_seaport, color: '#10B981' },
+    { name: 'Completed', value: calculatedDetailedStats.completed, color: '#059669' },
   ].filter(item => item.value > 0);
 
   const barChartData = [
@@ -221,41 +201,23 @@ export default function Dashboard() {
   ];
 
   if (loading) {
+    const loadingSteps = [
+      'Loading booking statistics...',
+      'Fetching recent bookings...',
+      'Preparing dashboard data...',
+    ];
+    
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="pb-2">
-                <div className="h-4 bg-muted animate-pulse rounded"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 bg-muted animate-pulse rounded"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <ProgressiveLoader 
+          progress={statsLoading ? 0.3 : bookingsLoading ? 0.7 : 1.0}
+          currentStep={statsLoading ? loadingSteps[0] : bookingsLoading ? loadingSteps[1] : loadingSteps[2]}
+          totalSteps={loadingSteps.length}
+        />
+        <SmartSkeleton type="stats" count={4} />
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          <Card className="xl:col-span-2">
-            <CardHeader>
-              <div className="h-6 bg-muted animate-pulse rounded w-48"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64 bg-muted animate-pulse rounded"></div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <div className="h-6 bg-muted animate-pulse rounded w-32"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-16 bg-muted animate-pulse rounded"></div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <SmartSkeleton type="card" className="xl:col-span-2" />
+          <SmartSkeleton type="list" count={5} />
         </div>
       </div>
     );

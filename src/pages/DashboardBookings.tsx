@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { useOptimizedQuery, useDebounce } from '@/hooks/useOptimizedQuery';
+import { useRealTimeOptimized } from '@/hooks/useRealTimeOptimized';
 
 interface Booking {
   id: string;
@@ -42,79 +44,65 @@ interface Booking {
 
 export default function DashboardBookings() {
   const { user } = useAuth();
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
   const [bookingIdFilter, setBookingIdFilter] = useState('');
   const [trackingFilter, setTrackingFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Debounce filter inputs
+  const debouncedBookingId = useDebounce(bookingIdFilter, 300);
+  const debouncedTracking = useDebounce(trackingFilter, 300);
+
+  // Optimized query for bookings
   const fetchBookings = async () => {
-    if (!user) return;
+    if (!user) throw new Error('User not authenticated');
+    
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('id, booking_id, item_name, category, shipping_method, delivery_method, total_weight, total_charge, status, district, city, tracking_numbers, created_at, updated_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
 
-    try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('id, booking_id, item_name, category, shipping_method, delivery_method, total_weight, total_charge, status, district, city, tracking_numbers, created_at, updated_at')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setBookings(data || []);
-      setFilteredBookings(data || []);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch bookings',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
+    if (error) throw error;
+    return data || [];
   };
 
-  useEffect(() => {
-    fetchBookings();
+  const { data: bookings = [], loading, error, refetch } = useOptimizedQuery(
+    `bookings-${user?.id}`,
+    fetchBookings,
+    { 
+      enabled: !!user,
+      deps: [user?.id],
+      cacheTime: 60000 // 1 minute cache
+    }
+  );
 
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('bookings-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'bookings',
-          filter: `user_id=eq.${user?.id}`,
-        },
-        () => {
-          fetchBookings();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
+  // Real-time updates
+  useRealTimeOptimized(
+    {
+      table: 'bookings',
+      filter: user ? `user_id=eq.${user.id}` : undefined,
+      enabled: !!user,
+      debounceMs: 500,
+    },
+    refetch
+  );
 
   useEffect(() => {
     let filtered = bookings;
 
     // Filter by booking ID
-    if (bookingIdFilter) {
+    if (debouncedBookingId) {
       filtered = filtered.filter((booking) =>
-        booking.booking_id.toLowerCase().includes(bookingIdFilter.toLowerCase())
+        booking.booking_id.toLowerCase().includes(debouncedBookingId.toLowerCase())
       );
     }
 
     // Filter by tracking number
-    if (trackingFilter) {
+    if (debouncedTracking) {
       filtered = filtered.filter((booking) =>
         booking.tracking_numbers?.some(tracking =>
-          tracking.toLowerCase().includes(trackingFilter.toLowerCase())
+          tracking.toLowerCase().includes(debouncedTracking.toLowerCase())
         )
       );
     }
@@ -125,7 +113,16 @@ export default function DashboardBookings() {
     }
 
     setFilteredBookings(filtered);
-  }, [bookings, bookingIdFilter, trackingFilter, statusFilter]);
+  }, [bookings, debouncedBookingId, debouncedTracking, statusFilter]);
+
+  // Handle errors
+  if (error) {
+    toast({
+      title: 'Error',
+      description: 'Failed to fetch bookings',
+      variant: 'destructive',
+    });
+  }
 
   const getStatusBadgeClass = (status: string) => {
     switch (status.toLowerCase()) {
