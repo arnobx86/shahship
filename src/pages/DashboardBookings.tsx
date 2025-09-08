@@ -55,7 +55,7 @@ export default function DashboardBookings() {
     try {
       const { data, error } = await supabase
         .from('bookings')
-        .select('*')
+        .select('id, booking_id, item_name, category, shipping_method, delivery_method, total_weight, total_charge, status, district, city, tracking_numbers, created_at, updated_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 

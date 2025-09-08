@@ -40,7 +40,7 @@ const AdminDashboard: React.FC = () => {
         // Fetch all bookings with status breakdown
         const { data: allBookings } = await supabase
           .from('bookings')
-          .select('*');
+          .select('status, created_at, total_charge');
 
         const totalBookings = allBookings?.length || 0;
         const completedBookings = allBookings?.filter(b => b.status === 'completed').length || 0;
@@ -67,7 +67,7 @@ const AdminDashboard: React.FC = () => {
         ).length || 0;
 
         // Fetch total customers
-        const { data: totalCustomers } = await supabase
+        const { count: totalCustomers } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true })
           .eq('role', 'customer');

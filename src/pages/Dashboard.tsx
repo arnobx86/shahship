@@ -77,7 +77,7 @@ export default function Dashboard() {
     try {
       const { data, error } = await supabase
         .from('bookings')
-        .select('status')
+        .select('status, created_at')
         .eq('user_id', user.id);
 
       if (error) throw error;
