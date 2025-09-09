@@ -323,7 +323,8 @@ export const AdminPricingManager: React.FC = () => {
                           size="sm"
                           variant="outline"
                           onClick={() => handleEdit(rule)}
-                          className="text-white border-white/10 hover:bg-white/10"
+                          className="text-white border-[#0846AA] hover:bg-[#0846AA]/10"
+                          style={{ color: '#0846AA' }}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>

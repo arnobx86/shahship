@@ -15,6 +15,8 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -37,6 +39,12 @@ const Login = () => {
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  };
+
+  // Validate phone number (exactly 11 digits)
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^\d{11}$/;
+    return phoneRegex.test(phone);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -102,6 +110,21 @@ const Login = () => {
       setError('Please enter a valid email address');
       return;
     }
+
+    if (!fullName.trim()) {
+      setError('Please enter your full name');
+      return;
+    }
+
+    if (!phone.trim()) {
+      setError('Please enter your phone number');
+      return;
+    }
+
+    if (!validatePhone(phone)) {
+      setError('Phone number must be exactly 11 digits');
+      return;
+    }
     
     setLoading(true);
     
@@ -110,7 +133,11 @@ const Login = () => {
         email: email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: `${window.location.origin}/`
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: fullName,
+            phone: `+88${phone}`
+          }
         }
       });
 
@@ -324,6 +351,17 @@ const Login = () => {
             ) : mode === 'signup' ? (
               <form onSubmit={handleSignup} className="space-y-6">
                 <div>
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
                   <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
@@ -333,14 +371,37 @@ const Login = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <div className="flex">
+                    <div className="flex items-center px-3 py-2 bg-muted border border-r-0 border-input rounded-l-md text-sm text-muted-foreground">
+                      +88
+                    </div>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="01712345678"
+                      value={phone}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '');
+                        if (value.length <= 11) {
+                          setPhone(value);
+                        }
+                      }}
+                      className="rounded-l-none"
+                      maxLength={11}
+                      required
+                    />
+                  </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    We'll send you a verification code
+                    Enter exactly 11 digits (e.g., 01712345678)
                   </p>
                 </div>
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={loading || !email.trim()}
+                  disabled={loading || !email.trim() || !fullName.trim() || !phone.trim() || phone.length !== 11}
                   variant="maritime"
                 >
                   {loading ? 'Sending...' : 'Send Verification Code'}
