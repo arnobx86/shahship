@@ -171,14 +171,15 @@ export default function Dashboard() {
     navigate(`/dashboard/bookings/${bookingId}`);
   };
 
-  // Calculate detailed stats for display
+  // Calculate detailed stats for display with null safety
+  const safeStats = stats || { placed: 0, processing: 0, completed: 0, cancelled: 0, total: 0 };
   const calculatedDetailedStats = {
-    'received_china_airport': Math.floor(stats.processing * 0.2),
-    'received_china_warehouse': Math.floor(stats.processing * 0.3),
-    'on_way_delivery': Math.floor(stats.processing * 0.25),
-    'processing_delivery': Math.floor(stats.processing * 0.15),
-    'received_bd_seaport': Math.floor(stats.processing * 0.1),
-    'completed': stats.completed,
+    'received_china_airport': Math.floor(safeStats.processing * 0.2),
+    'received_china_warehouse': Math.floor(safeStats.processing * 0.3),
+    'on_way_delivery': Math.floor(safeStats.processing * 0.25),
+    'processing_delivery': Math.floor(safeStats.processing * 0.15),
+    'received_bd_seaport': Math.floor(safeStats.processing * 0.1),
+    'completed': safeStats.completed,
   };
 
   const loading = statsLoading || bookingsLoading;
@@ -194,10 +195,10 @@ export default function Dashboard() {
   ].filter(item => item.value > 0);
 
   const barChartData = [
-    { name: 'Placed', value: stats.placed, color: 'hsl(var(--success))' },
-    { name: 'Processing', value: stats.processing, color: 'hsl(var(--warning))' },
-    { name: 'Completed', value: stats.completed, color: 'hsl(var(--success))' },
-    { name: 'Cancelled', value: stats.cancelled, color: 'hsl(var(--destructive))' },
+    { name: 'Placed', value: safeStats.placed, color: 'hsl(var(--success))' },
+    { name: 'Processing', value: safeStats.processing, color: 'hsl(var(--warning))' },
+    { name: 'Completed', value: safeStats.completed, color: 'hsl(var(--success))' },
+    { name: 'Cancelled', value: safeStats.cancelled, color: 'hsl(var(--destructive))' },
   ];
 
   if (loading) {
@@ -233,7 +234,7 @@ export default function Dashboard() {
             <Package className="h-5 w-5 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">{stats.placed}</div>
+            <div className="text-2xl font-bold text-success">{safeStats.placed}</div>
             <p className="text-xs text-muted-foreground">New bookings placed</p>
           </CardContent>
         </Card>
@@ -244,7 +245,7 @@ export default function Dashboard() {
             <Clock className="h-5 w-5 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-warning">{stats.processing}</div>
+            <div className="text-2xl font-bold text-warning">{safeStats.processing}</div>
             <p className="text-xs text-muted-foreground">Currently processing</p>
           </CardContent>
         </Card>
@@ -255,7 +256,7 @@ export default function Dashboard() {
             <CheckCircle className="h-5 w-5 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">{stats.completed}</div>
+            <div className="text-2xl font-bold text-success">{safeStats.completed}</div>
             <p className="text-xs text-muted-foreground">Successfully delivered</p>
           </CardContent>
         </Card>
@@ -266,7 +267,7 @@ export default function Dashboard() {
             <XCircle className="h-5 w-5 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{stats.cancelled}</div>
+            <div className="text-2xl font-bold text-destructive">{safeStats.cancelled}</div>
             <p className="text-xs text-muted-foreground">Cancelled bookings</p>
           </CardContent>
         </Card>
@@ -333,17 +334,17 @@ export default function Dashboard() {
             {/* Quick Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t">
               <div className="text-center">
-                <p className="text-2xl font-bold text-primary">{stats.total}</p>
+                <p className="text-2xl font-bold text-primary">{safeStats.total}</p>
                 <p className="text-xs text-muted-foreground">Total Bookings</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-success">
-                  {stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(0) : 0}%
+                  {safeStats.total > 0 ? ((safeStats.completed / safeStats.total) * 100).toFixed(0) : 0}%
                 </p>
                 <p className="text-xs text-muted-foreground">Success Rate</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-warning">{stats.placed + stats.processing}</p>
+                <p className="text-2xl font-bold text-warning">{safeStats.placed + safeStats.processing}</p>
                 <p className="text-xs text-muted-foreground">Active</p>
               </div>
               <div className="text-center">
