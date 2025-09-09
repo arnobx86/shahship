@@ -89,7 +89,9 @@ export default function DashboardBookings() {
   );
 
   useEffect(() => {
-    let filtered = bookings;
+    // Ensure bookings is always an array
+    const safeBookings = bookings || [];
+    let filtered = safeBookings;
 
     // Filter by booking ID
     if (debouncedBookingId) {
@@ -234,7 +236,7 @@ export default function DashboardBookings() {
           <CardContent className="py-12 text-center">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground mb-4">
-              {bookings.length === 0 ? 'No bookings found' : 'No bookings match your filters'}
+              {(bookings || []).length === 0 ? 'No bookings found' : 'No bookings match your filters'}
             </p>
             <Button asChild>
               <Link to="/booking">Create Your First Booking</Link>
